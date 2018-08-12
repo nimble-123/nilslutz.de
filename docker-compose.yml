@@ -1,0 +1,57 @@
+version: "2"
+
+services:
+  proxy:
+    image: "jwilder/nginx-proxy"
+    container_name: "nginx-proxy"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "nginx_data:/etc/nginx/certs:ro" # update this to change cert location
+      - "/etc/nginx/vhost.d" # to update vhost configuration
+      - "/usr/share/nginx/html" # to write challenge files
+    restart: unless-stopped
+
+  ssl-companion:
+    image: "jrcs/letsencrypt-nginx-proxy-companion"
+    container_name: "ssl-companion"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "nginx_data:/etc/nginx/certs:rw" # same path as above, now RW
+    volumes_from:
+      - proxy
+    depends_on:
+      - proxy
+    restart: unless-stopped
+
+  mariadb:
+    image: "bitnami/mariadb:latest"
+    container_name: "mariadb-database"
+    volumes:
+      - "mariadb_data:/bitnami/mariadb"
+    env_file:
+      - "mariadb-vars.env"
+    restart: unless-stopped
+
+  blog:
+    image: "bitnami/ghost:latest"
+    container_name: "ghost-blog"
+    volumes:
+      - "ghost_data:/bitnami/ghost"
+    expose:
+      - "2368"
+    depends_on:
+      - mariadb
+    env_file:
+      - "ghost-vars.env"
+    restart: unless-stopped
+
+volumes:
+  nginx_data:
+    driver: local
+  mariadb_data:
+    driver: local
+  ghost_data:
+    driver: local
