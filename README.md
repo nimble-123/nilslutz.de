@@ -40,9 +40,12 @@ Access service at public dns set in environment variables.
 
 - Backup
 
-  - Container controlling lifecycle of service and has access to service container data volumes
-  - Backup script to compress the data and send to off-site location
-  - Evaluate off-site locations (AWS S3)
+  - ~~Container controlling lifecycle of service and has access to service container data volumes~~
+  - ~~Backup script to compress the data and send to off-site location~~
+  - ~~Evaluate off-site locations (AWS S3)~~
+  - Backup rotation to save storage and only keep the last two backups
+  - Docs how-to create S3 bucket and configure local awscli to use backup script
+  - Cronjob example
 
 ---
 
