@@ -1,0 +1,30 @@
+{
+  "name": "nilslutz.de",
+  "version": "1.0.0",
+  "description": "My personal website",
+  "scripts": {
+    "start:silent": "docker-compose up -d",
+    "start:verbose": "docker-compose up",
+    "stop": "docker-compose stop",
+    "cleanup": "docker-compose down"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nlsltz/nilslutz.de.git"
+  },
+  "keywords": [
+    "docker",
+    "docker-compose",
+    "nginx",
+    "ssl",
+    "ghost",
+    "blog",
+    "mariadb"
+  ],
+  "author": "Nils Lutz <info@nilslutz.de>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nlsltz/nilslutz.de/issues"
+  },
+  "homepage": "https://github.com/nlsltz/nilslutz.de#readme"
+}
