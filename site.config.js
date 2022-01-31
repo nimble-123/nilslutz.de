@@ -7,14 +7,14 @@ module.exports = {
   rootNotionSpaceId: null,
 
   // basic site info (required)
-  name: 'nimble\'s 2 cent 🚀',
+  name: "nimble's point of view",
   domain: 'nilslutz.de',
   author: 'Nils Lutz',
 
   // open graph metadata (optional)
   description: 'Personal blog',
   socialImageTitle: 'nilslutz.de',
-  socialImageSubtitle: 'Hello World! 👋',
+  socialImageSubtitle: "nimble's point of view",
 
   // social usernames (optional)
   twitter: 'nimble___',
