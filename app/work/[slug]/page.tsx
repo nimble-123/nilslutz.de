@@ -110,7 +110,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
           )}
 
           {/* Content */}
-          <div className="prose dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-lg max-w-none">
+          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg max-w-none">
             <MDXRemote source={study.content} />
           </div>
         </article>

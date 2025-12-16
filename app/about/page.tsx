@@ -72,7 +72,7 @@ export default function AboutPage() {
           {/* Profile Section */}
           <section className="space-y-6">
             <h1 className="text-4xl font-bold tracking-tight">About Me</h1>
-            <div className="prose dark:prose-invert text-muted-foreground max-w-none text-lg leading-relaxed">
+            <div className="prose dark:prose-invert prose-p:text-muted-foreground prose-strong:text-foreground max-w-none text-lg leading-relaxed">
               <p>
                 I design and build Side-by-Side Extensions with <strong>CAP</strong>, <strong>RAP</strong>, and{' '}
                 <strong>Fiori</strong> on SAP BTP. My primary focus is on <strong>Clean Core</strong> compliance,

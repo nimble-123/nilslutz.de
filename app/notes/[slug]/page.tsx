@@ -59,7 +59,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Content */}
-          <div className="prose dark:prose-invert prose-a:text-primary max-w-none">
+          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg max-w-none">
             <MDXRemote source={note.content} />
           </div>
         </article>

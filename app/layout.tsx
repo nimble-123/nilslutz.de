@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/ui/theme-provider'
 import { clsx } from 'clsx'
 
 import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 @theme {
   --font-sans: var(--font-inter);
@@ -47,16 +48,19 @@
   --popover: #ffffff;
   --popover-foreground: #0b1220;
 
-  --primary: #1e63ff; /* Blue Accent */
+  --primary: #1e63ff;
+  /* Blue Accent */
   --primary-foreground: #ffffff;
 
-  --secondary: #e6e8ee; /* Cool Gray Border */
+  --secondary: #e6e8ee;
+  /* Cool Gray Border */
   --secondary-foreground: #0b1220;
 
   --muted: #f7f8fa;
   --muted-foreground: #5b6474;
 
-  --accent: #e1e6f0; /* Light Blue Tint for hover */
+  --accent: #e1e6f0;
+  /* Light Blue Tint for hover */
   --accent-foreground: #1e63ff;
 
   --destructive: #ef4444;
@@ -84,7 +88,8 @@
   --popover: #0f1730;
   --popover-foreground: #eaf0ff;
 
-  --primary: #4c7dff; /* Bright Indigo Accent */
+  --primary: #4c7dff;
+  /* Bright Indigo Accent */
   --primary-foreground: #ffffff;
 
   --secondary: #22304e;
@@ -112,6 +117,7 @@
     @apply border border-white/20 shadow-xl backdrop-blur-xl dark:border-white/5;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
   }
+
   .dark .glass {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.2) 100%);
   }
@@ -120,6 +126,7 @@
     @apply border border-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl dark:border-white/10;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
   }
+
   .dark .glass-card {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(30, 41, 59, 0.1) 100%);
   }
@@ -141,13 +148,16 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--muted-foreground);
 }
