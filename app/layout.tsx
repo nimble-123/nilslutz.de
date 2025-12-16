@@ -4,6 +4,8 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 import { clsx } from 'clsx'
 
+import { Analytics } from '@vercel/analytics/next'
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -31,6 +33,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <div className="flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
