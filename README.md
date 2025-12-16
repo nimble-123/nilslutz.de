@@ -1,4 +1,4 @@
-# Niles Lutz - SAP Solution Architect Portfolio
+# Nils Lutz - SAP Solution Architect Portfolio
 
 Production-ready personal website built with Next.js 16, Tailwind CSS 4, and Framer Motion.
 Designed for high performance, clean aesthetics ("Nordic Clean"), and maintainability.
