@@ -1,13 +1,13 @@
 {
   "name": "nilslutz.de",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "Personal blog from nimble",
   "author": "Nils Lutz <info@nilslutz.de>",
   "repository": "nimble-123/nilslutz.de",
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "next dev",
