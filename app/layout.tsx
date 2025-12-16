@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ui/theme-provider'
 import { clsx } from 'clsx'
 
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,6 +35,7 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
