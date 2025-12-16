@@ -1,0 +1,22 @@
+---
+title: 'arc42 light: Doku die wirklich gelesen wird'
+summary: "Warum 200 Seiten Word-Dokumente sterben müssen und wie wir mit Markdown und einer 'Light'-Version von arc42 pragmatisch Architektur dokumentieren."
+date: '2024-03-15'
+tags: ['Documentation', 'Architecture', 'Methodology']
+---
+
+# Das Problem mit der Doku
+
+Niemand liest 100 Seiten Pflichtenheft. Und niemand hält sie aktuell.
+Als Architekten müssen wir pragmatisch sein. **Docs as Code** ist der einzige Weg.
+
+## Mein Ansatz: arc42 Light
+
+Ich nutze eine reduzierte Struktur von arc42:
+
+1.  **Context View**: Wer interagiert mit dem System? (C4 Level 1)
+2.  **Building Block View**: Was sind die Hauptkomponenten? (C4 Level 2)
+3.  **Runtime View**: Sequenzdiagramme für die wichtigsten 3 Flows.
+4.  **ADRs**: Architekturentscheidungen (warum CAP und nicht RAP?).
+
+Das Ganze liegt im Git-Repo, nah am Code.

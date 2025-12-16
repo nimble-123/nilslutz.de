@@ -1,0 +1,31 @@
+---
+title: 'Side-by-Side Extension with CAP & Fiori'
+summary: 'Building a scalable supplier portal on SAP BTP using Cloud Application Programming Model (CAP) and SAP HANA Cloud.'
+tags: ['CAP', 'BTP', 'Node.js', 'Fiori', 'Side-by-Side']
+period: '2023-2024'
+role: 'Solution Architect & Dev Lead'
+stack: ['CAP (Node.js)', 'SAP HANA Cloud', 'Fiori Elements', 'Event Mesh']
+featured: true
+metrics: ['< 200ms API Latency', 'Global Rollout (20+ countries)']
+---
+
+# Context
+
+The client needed a supplier portal accessible from the internet without exposing the ERP directly. Security and scalability were paramount.
+
+# Solution Architecture
+
+We chose a **Side-by-Side Extension** pattern on SAP BTP.
+
+- **Backend**: CAP (Node.js) handling business logic and persistence in SAP HANA Cloud.
+- **Frontend**: SAP Fiori Elements (Vue.js wrapper or standard UI5) - _Correction: Standard Fiori Elements via OData v4._
+- **Integration**: SCC (Cloud Connector) to S/4HANA for master data replication.
+
+## Patterns Used
+
+- **Managed Association**: To simplify data modeling.
+- **CQRS**: Separating read (Fiori list) from heavy write operations.
+
+# Outcome
+
+A secure, highly available portal that scales independently of the ERP backend.

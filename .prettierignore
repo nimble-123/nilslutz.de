@@ -1,9 +1,6 @@
-.snapshots/
-build/
-dist/
-node_modules/
-.next/
-.vercel/
-
-.demo/
-.renderer/
+.next
+node_modules
+dist
+build
+coverage
+*.min.js

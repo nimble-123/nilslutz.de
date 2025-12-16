@@ -1,0 +1,30 @@
+---
+title: 'Clean-Core Redesign: ECC Custom Code to RAP'
+summary: 'Modernizing a legacy ECC custom solution to a Clean Core compliant RAP application on S/4HANA Private Cloud, utilizing OData v4 and Fiori Elements.'
+tags: ['Architecture', 'RAP', 'Clean Core', 'Refactoring', 'S/4HANA']
+period: '2024'
+role: 'Lead Architect'
+stack: ['ABAP RAP', 'OData v4', 'Fiori Elements', 'CDS Views']
+featured: true
+metrics: ['-40% Maintenance Effort', '100% Core Clean', 'Zero Modifications']
+---
+
+# The Challenge
+
+The client had a heavily modified Z-transaction in their ECC system for managing complex procurement requests. The code was entangled with standard SAP logic (user exits, modifications), blocking the S/4HANA upgrade path.
+
+# The Solution
+
+We redesigned the process from the ground up using the **Restful ABAP Programming Model (RAP)** on S/4HANA Private Cloud.
+
+## Key Decisions
+
+1.  **Strict Clean Core**: Zero modifications. All interactions with standard business objects via released APIs (I_PurchaseRequisitionTP).
+2.  **Tier 1 Extensibility**: Used purely Key User Extensibility where possible, falling back to specific BADIs only when necessary.
+3.  **Fiori Elements**: Replaced the complex Dynpro screen with a standard List Report / Object Page floorplan to reduce UI code maintenance.
+
+# The Outcome
+
+- Successfully decoupled the custom logic from the standard core.
+- Enabled "Keep the Core Clean" strategy for future upgrades.
+- Improved user experience with a responsive Fiori UI.

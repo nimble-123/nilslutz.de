@@ -1,51 +1,105 @@
-# My personal blog based on Next.JS and Notion as CMS
+# Niles Lutz - SAP Solution Architect Portfolio
 
-[![Prettier Code Formatting](https://img.shields.io/badge/code_style-prettier-brightgreen.svg)](https://prettier.io)
+Production-ready personal website built with Next.js 16, Tailwind CSS 4, and Framer Motion.
+Designed for high performance, clean aesthetics ("Nordic Clean"), and maintainability.
 
-## Intro
+## 🚀 Technologies
 
-This repo is what I use to power my personal blog / portfolio site [nilslutz.de](https://nilslutz.de).
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com) + `clsx` + `tailwind-merge`
+- **Content**: MDX (via `next-mdx-remote/rsc`) + `gray-matter` for frontmatter.
+- **Animation**: `framer-motion`
+- **Theming**: `next-themes` (Dark/Light mode)
+- **Tooling**: Prettier, ESLint
 
-It uses Notion as a CMS, fetching content from Notion and then uses [Next.js](https://nextjs.org/) and [react-notion-x](https://github.com/NotionX/react-notion-x) to render everything.
+## 📐 Architecture
 
-The site is then deployed to [Vercel](http://vercel.com).
+```mermaid
+graph TD
+    User[User / Browser] <-->|HTTP Request| Next["Next.js Server (App Router)"]
 
-## Features
+    subgraph "Build Time / SSG"
+        Content[MDX Content Files] -->|gray-matter| Loader[Content Loader]
+        Loader -->|Generate| Pages[Static Pages]
+    end
 
-- Setup only takes a few minutes ([single config file](./site.config.js)) 💪
-- Robust support for Notion content via [react-notion-x](https://github.com/NotionX/react-notion-x)
-- Next.js / TS / React / Notion
-- Excellent page speeds
-- Sexy LQIP image previews
-- Embedded GitHub comments
-- Automatic open graph images
-- Automatic pretty URLs
-- Automatic table of contents
-- Full support for dark mode
-- Quick search via CMD+P just like in Notion
-- Responsive for desktop / tablet / mobile
-- Optimized for Next.js and Vercel
+    subgraph "Runtime"
+        Next -->|Serve| Pages
+        Next -->|Hydrate| Components[React Components]
+    end
 
-## Setup
+    Components -->|Style| Tailwind[Tailwind CSS]
+    Components -->|Animate| Motion[Framer Motion]
+```
 
-**All config is defined in [site.config.js](./site.config.js).**
+## 🛠️ Setup & Development
 
-1. Fork / clone this repo
-2. Change a few values in [site.config.js](./site.config.js)
-3. `npm install`
-4. `npm run dev` to test locally
-5. `npm run deploy` to deploy to vercel 💪
+```bash
+# Install dependencies
+npm install
 
-I tried to make configuration as easy as possible.
+# Run development server
+npm run dev
 
-All you really need to do to get started is edit `rootNotionPageId`. It defaults to rendering my site's public notion page [69b20b1123e04a96b56b5290c87dfa9f](https://notion.so/69b20b1123e04a96b56b5290c87dfa9f).
+# Build for production
+npm run build
 
-You'll want to make your root Notion page **public** and then copy the link to your clipboard. Then extract the last part of the URL that looks like `d1b5dcf8b9ff425b8aef5ce6f0730202`, which is your page's Notion ID.
+# Start production server
+npm start
+```
 
+## 📝 Content Management
+
+Content is managed via Markdown/MDX files in the `content/` directory.
+
+### Profile
+
+Edit `content/profile.ts` for:
+
+- Name, Role, Bio
+- Social Links
+- CTA texts
+
+### Case Studies
+
+Add `.mdx` files to `content/case-studies/`.
+Required Frontmatter:
+
+```yaml
 ---
+title: 'Project Title'
+summary: 'Short description...'
+tags: ['CAP', 'BTP', 'Architecture']
+period: '2024'
+role: 'Solution Architect'
+stack: ['Node.js', 'HANA']
+featured: true
+metrics: ['-30% Costs']
+---
+```
+
+### Notes (Blog)
+
+Add `.mdx` files to `content/notes/`.
+Required Frontmatter:
+
+```yaml
+---
+title: 'Article Title'
+summary: 'Teaser...'
+date: '2024-03-20'
+tags: ['Architecture']
+---
+```
+
+## 🏗️ Architecture Decisions (ADR-light)
+
+1.  **MDX over CMS**: For a developer portfolio, "Content as Code" is superior. No external dependencies, easy versioning in Git.
+2.  **Tailwind CSS 4**: Used the latest version for better performance (CSS-first config) and future-proofing.
+3.  **Client-Side Filtering**: List of case studies is filtered client-side (`<CaseStudyList>`) for instant feedback. The data set is small enough (< 100 items).
+4.  **Component Architecture**: clearly separated into `components/ui` (reusable, generic) and `components/specialized` (domain-specific, non-reusable).
+5.  **Inter Font**: Self-hosted via `next/font` for privacy and performance (no Google Fonts network requests).
 
 ## License
 
-MIT © [Nils Lutz](https://nilslutz.de)
-
-Support me by <a href="https://twitter.com/nimble___">following me on twitter <img src="https://storage.googleapis.com/saasify-assets/twitter-logo.svg" alt="twitter" height="24px" align="center"></a>
+MIT

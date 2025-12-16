@@ -1,0 +1,26 @@
+---
+title: 'Event-Driven Architecture with Event Mesh'
+summary: 'Decoupling complex manufacturing processes using asynchronous messaging via SAP Event Mesh.'
+tags: ['Architecture', 'Event Mesh', 'CAP', 'S/4HANA']
+period: '2024'
+role: 'Lead Developer'
+stack: ['SAP Event Mesh', 'CAP', 'CloudEvents', 'S/4HANA Enterprise Messaging']
+featured: true
+metrics: ['Near Real-time Sync', 'Resilient Processing']
+---
+
+# The Requirement
+
+A production order change in S/4HANA needed to trigger updates in three different non-SAP subsystems immediately. The point-to-point interface was brittle and slow.
+
+# The Solution
+
+We implemented an **Event-Driven Architecture**.
+
+1.  **Publisher**: S/4HANA publishes `BusinessPartner.Created` and custom `ProductionOrder.Changed` events to SAP Event Mesh.
+2.  **Broker**: SAP Event Mesh distributes messages to queues based on topic subscriptions.
+3.  **Consumer**: A CAP service subscribes to the queue, transforms the payload, and forwards it to the subsystems (Push).
+
+# Key Takeaway
+
+Loose coupling allowed us to add a 4th consumer system months later without touching the S/4HANA backend.

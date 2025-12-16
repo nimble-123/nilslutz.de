@@ -1,0 +1,26 @@
+---
+title: 'CAP Bound Actions: Patterns & Pitfalls'
+summary: 'Bound Actions in CAP sind mächtig, aber man muss den Context (`this`) verstehen. Ein Deep-Dive in Implementation Patterns.'
+date: '2024-05-10'
+tags: ['CAP', 'Node.js', 'Code']
+---
+
+# Bound Actions definiert
+
+Im Gegensatz zu Unbound Actions, sind Bound Actions an eine Entitäts-Instanz gebunden.
+Beispiel: `Order(ID='123')/approve`.
+
+## Pattern: `this` extraction
+
+Wenn man in Node.js den Handler schreibt, ist `req.subject` oft der Key.
+
+```javascript
+this.on('approve', 'Orders', async (req) => {
+  const { ID } = req.params[0] // Manchmal tricky
+  // do something
+})
+```
+
+## Best Practice
+
+Nicht zu viel Logik in den Handler packen. Lieber in eine Service-Function auslagern, die testbar ist.

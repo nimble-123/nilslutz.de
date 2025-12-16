@@ -1,0 +1,28 @@
+---
+title: 'Secure Integration: API Management & OAuth'
+summary: 'Implementing a robust API Gateway strategy for exposing internal SAP APIs to 3rd party partners using SAP APIM.'
+tags: ['Integration', 'Security', 'BTP', 'API Management']
+period: '2023'
+role: 'Integration Architect'
+stack: ['SAP API Management', 'OAuth 2.0', 'Cloud Connector', 'SAP IAS']
+featured: false
+metrics: ['Zero Unauthorized Access', 'Standardized Throttling']
+---
+
+# Problem
+
+External partners were accessing SAP Gateway OData services directly via Basic Auth. This posed security risks and lacked governance (throttling, monitoring).
+
+# Implementation
+
+We introduced **SAP API Management** on BTP as the central gateway.
+
+## Security Flow
+
+1.  **OAuth 2.0 Client Credentials**: Partners exchange client id/secret for a JWT.
+2.  **API Policy**: Validates JWT, checks quota, and transforms headers.
+3.  **Backend Auth**: Principal propagation or Technical User mapping via Cloud Connector.
+
+# Result
+
+Full visibility into API usage, enforced security policies, and protection of the backend system from traffic spikes.
