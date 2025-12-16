@@ -102,4 +102,6 @@ tags: ['Architecture']
 
 ## License
 
-MIT
+The code in this repository is licensed under the **MIT License**.
+
+All content (blog posts, case studies, notes, images) is licensed under **[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)** (Attribution-NonCommercial-ShareAlike) unless otherwise stated.
