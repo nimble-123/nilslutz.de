@@ -1,0 +1,264 @@
+---
+title: 'Command Pattern in SAP CAP'
+summary: 'Kapslung von Business-Operationen als wiederverwendbare, testbare Klassen im SAP Cloud Application Programming Model.'
+tags: ['Design Pattern', 'CAP', 'Clean Architecture', 'TypeScript']
+date: '2025-12-17'
+---
+
+# Command Pattern in SAP CAP
+
+Das **Command Pattern** ist ein Verhaltensmuster, das Anfragen als eigenständige Objekte kapselt. In SAP CAP-Anwendungen ermöglicht es eine klare Trennung zwischen Request-Handling (Handler) und Business-Logik (Commands).
+
+## Problem
+
+In klassischen CAP-Services wird Business-Logik oft direkt in Event-Handlern implementiert:
+
+```typescript
+service.before('CREATE', 'TimeEntries', async (req) => {
+  // Validierung
+  if (!req.data.startTime) throw new Error('...');
+
+  // Berechnung
+  const duration = calculateDuration(req.data);
+
+  // Datenzugriff
+  const existing = await SELECT.from(TimeEntries)...
+
+  // Mehr Logik...
+});
+```
+
+**Probleme:**
+
+- Handler werden schnell unübersichtlich (100+ Zeilen)
+- Business-Logik ist schwer testbar (benötigt CAP-Runtime)
+- Keine Wiederverwendung zwischen verschiedenen Event-Typen
+- Schwierige Dependency-Auflösung
+
+## Lösung: Command Pattern
+
+Commands kapseln eine Business-Operation mit allen ihren Dependencies:
+
+```typescript
+export class CreateTimeEntryCommand {
+  constructor(
+    private repo: TimeEntryRepository,
+    private validator: TimeEntryValidator,
+    private timeCalc: TimeCalculationService,
+    private factory: TimeEntryFactory
+  ) {}
+
+  async execute(tx: Transaction, data: TimeEntryInput): Promise<TimeEntry> {
+    // 1. Validierung
+    await this.validator.validateCreate(tx, data)
+
+    // 2. Business-Logik
+    const timeValues = this.timeCalc.calculate(data)
+
+    // 3. Objekterzeugung
+    const entry = this.factory.create(data, timeValues)
+
+    // 4. Persistierung
+    return await this.repo.create(tx, entry)
+  }
+}
+```
+
+### Handler als "Thin Orchestrator"
+
+```typescript
+service.on('CREATE', 'TimeEntries', async (req) => {
+  const command = container.getCommand('createTimeEntry')
+  return await command.execute(req, req.data)
+})
+```
+
+## Vorteile
+
+### 1. Testbarkeit
+
+Commands sind reine TypeScript-Klassen ohne CAP-Abhängigkeiten:
+
+```typescript
+describe('CreateTimeEntryCommand', () => {
+  it('should create entry with calculated values', async () => {
+    const mockRepo = { create: jest.fn() };
+    const command = new CreateTimeEntryCommand(mockRepo, ...);
+
+    await command.execute(mockTx, testData);
+
+    expect(mockRepo.create).toHaveBeenCalledWith(...);
+  });
+});
+```
+
+### 2. Wiederverwendung
+
+Derselbe Command kann von verschiedenen Stellen aufgerufen werden:
+
+```typescript
+// HTTP Request Handler
+service.on('CREATE', 'TimeEntries', async (req) => {
+  return await createCommand.execute(req, req.data)
+})
+
+// Bound Action
+service.on('generateMonthly', async (req) => {
+  for (const data of generatedData) {
+    await createCommand.execute(req, data) // Reuse!
+  }
+})
+```
+
+### 3. Explizite Dependencies
+
+Alle Abhängigkeiten sind im Konstruktor sichtbar:
+
+```typescript
+constructor(
+  private repo: TimeEntryRepository,        // Data Access
+  private validator: TimeEntryValidator,     // Validation
+  private timeCalc: TimeCalculationService,  // Domain Logic
+  private factory: TimeEntryFactory          // Object Creation
+) {}
+```
+
+### 4. Single Responsibility
+
+Jeder Command hat **eine** klar definierte Aufgabe:
+
+- `CreateTimeEntryCommand` → Neuen Eintrag erstellen
+- `UpdateTimeEntryCommand` → Bestehenden Eintrag aktualisieren
+- `GenerateMonthlyCommand` → Monatseinträge generieren
+- `GetMonthlyBalanceCommand` → Monatssaldo abfragen
+
+## Implementierung in CAPture Time
+
+### Command-Struktur
+
+```
+srv/track-service/handler/commands/
+├── time-entry/
+│   ├── CreateTimeEntryCommand.ts
+│   ├── UpdateTimeEntryCommand.ts
+│   └── RecalculateTimeEntryCommand.ts
+├── generation/
+│   ├── GenerateMonthlyCommand.ts
+│   ├── GenerateYearlyCommand.ts
+│   └── GetDefaultParamsCommand.ts
+├── balance/
+│   ├── GetMonthlyBalanceCommand.ts
+│   ├── GetCurrentBalanceCommand.ts
+│   └── GetVacationBalanceCommand.ts
+└── index.ts  # Barrel Export
+```
+
+### ServiceContainer Integration
+
+Commands werden zentral im ServiceContainer registriert:
+
+```typescript
+class ServiceContainer {
+  private commands = new Map<string, Command>()
+
+  registerCommand(name: string, command: Command): void {
+    this.commands.set(name, command)
+  }
+
+  getCommand<T extends Command>(name: string): T {
+    return this.commands.get(name) as T
+  }
+}
+
+// Initialisierung
+container.registerCommand('createTimeEntry', new CreateTimeEntryCommand(repo, validator, timeCalc, factory))
+```
+
+## Best Practices
+
+### 1. Konsistentes Interface
+
+```typescript
+interface Command<TInput, TOutput> {
+  execute(tx: Transaction, input: TInput): Promise<TOutput>
+}
+```
+
+### 2. Strukturiertes Logging
+
+```typescript
+async execute(tx: Transaction, data: TimeEntryInput): Promise<TimeEntry> {
+  logger.commandStart('CreateTimeEntry', { userId: data.user_ID });
+
+  try {
+    const result = await this.processEntry(tx, data);
+    logger.commandSuccess('CreateTimeEntry', { entryId: result.ID });
+    return result;
+  } catch (error) {
+    logger.commandError('CreateTimeEntry', error);
+    throw error;
+  }
+}
+```
+
+### 3. Fehlerbehandlung
+
+```typescript
+async execute(tx: Transaction, data: TimeEntryInput): Promise<TimeEntry> {
+  // Validierungsfehler → 400 Bad Request
+  await this.validator.validateCreate(tx, data);
+
+  // Business Rule Violation → 409 Conflict
+  if (await this.repo.existsByUserAndDate(tx, data.user_ID, data.workDate)) {
+    throw new ConflictError('Entry already exists for this date');
+  }
+
+  // Technischer Fehler → 500 Internal Server Error
+  try {
+    return await this.repo.create(tx, entry);
+  } catch (error) {
+    throw new DatabaseError('Failed to create entry', error);
+  }
+}
+```
+
+## Alternativen
+
+### Option 1: Inline Handler-Logik
+
+❌ Keine Wiederverwendung, schwer testbar
+
+### Option 2: Service-Methoden
+
+⚠️ Besser, aber weniger explizite Dependencies
+
+### Option 3: Command Pattern (gewählt)
+
+✅ Maximale Testbarkeit, klare Verantwortlichkeiten
+
+## Trade-offs
+
+**Vorteile:**
+
+- ✅ Hervorragende Testbarkeit
+- ✅ Klare Verantwortlichkeiten (SRP)
+- ✅ Wiederverwendbare Business-Logik
+- ✅ Explizite Dependencies
+
+**Nachteile:**
+
+- ⚠️ Mehr Klassen (11 Commands in CAPture Time)
+- ⚠️ Initialer Setup-Aufwand (ServiceContainer)
+- ⚠️ Indirektion (Handler → Command)
+
+## Fazit
+
+Das Command Pattern ist ideal für komplexe CAP-Anwendungen mit mehreren Business-Operationen. Es ermöglicht **Clean Architecture** durch klare Trennung von Infrastructure (Handler) und Business Logic (Commands).
+
+Für einfache CRUD-Services mit wenig Logik kann der Overhead unnötig sein. Aber sobald Validierung, Berechnungen und komplexe Workflows hinzukommen, zahlt sich das Pattern aus.
+
+## Siehe auch
+
+- [Repository Pattern](/notes/repository-pattern-cap) für Datenzugriff
+- [Dependency Injection](/notes/dependency-injection-cap) für Container-Pattern
+- [ADR 0002: Command Pattern](https://github.com/nimble-123/cap-fiori-timetracking/blob/main/docs/ADR/0002-command-pattern-business-logik.md) im Original-Projekt

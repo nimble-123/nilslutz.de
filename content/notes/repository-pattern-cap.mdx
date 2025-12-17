@@ -1,0 +1,407 @@
+---
+title: 'Repository Pattern in SAP CAP'
+summary: 'Typsicherer Datenzugriff und Abstraktion der Datenschicht in SAP CAP-Anwendungen mit TypeScript.'
+tags: ['Design Pattern', 'CAP', 'TypeScript', 'Data Access']
+date: '2025-12-17'
+---
+
+# Repository Pattern in SAP CAP
+
+Das **Repository Pattern** trennt die Business-Logik von der Datenzugriffslogik. In SAP CAP bietet es eine typsichere Abstraktionsschicht über CDS-Queries.
+
+## Problem
+
+Direkter Datenzugriff in CAP führt zu mehreren Problemen:
+
+```typescript
+// Anti-Pattern: Direkter Datenzugriff überall
+service.on('CREATE', 'TimeEntries', async (req) => {
+  // Validierung mit direktem DB-Zugriff
+  const existing = await SELECT.from('TimeEntries').where({ user_ID: req.data.user_ID, workDate: req.data.workDate })
+
+  if (existing) {
+    throw new Error('Entry exists')
+  }
+
+  // Business-Logik
+  // ...mehr direkter DB-Zugriff
+})
+
+// Gleiche Query in anderem Handler
+service.on('UPDATE', 'TimeEntries', async (req) => {
+  const existing = await SELECT.from('TimeEntries').where({ user_ID: req.data.user_ID, workDate: req.data.workDate })
+  // ...
+})
+```
+
+**Probleme:**
+
+- ❌ Query-Logik dupliziert über mehrere Handler
+- ❌ Keine Typsicherheit (Strings statt Types)
+- ❌ Schwer testbar (direkter DB-Zugriff)
+- ❌ Inkonsistente Fehlerbehandlung
+- ❌ Kein zentrales Logging
+
+## Lösung: Repository Pattern
+
+### Repository-Struktur
+
+```typescript
+import { Transaction } from '@sap/cds'
+import { TimeEntry } from '#cds-models/TrackService'
+import { logger } from '../utils'
+
+export class TimeEntryRepository {
+  private entries: any
+
+  constructor(entities: any) {
+    this.entries = entities.TimeEntries
+  }
+
+  async findById(tx: Transaction, id: string): Promise<TimeEntry | null> {
+    logger.repositoryQuery('TimeEntry', `Finding by ID: ${id}`, { id })
+
+    const entry = await tx.read(this.entries).where({ ID: id }).one()
+
+    if (!entry) {
+      logger.repositoryNotFound('TimeEntry', `Entry not found`, { id })
+      return null
+    }
+
+    logger.repositoryResult('TimeEntry', 'Found entry', { id })
+    return entry
+  }
+
+  async existsByUserAndDate(tx: Transaction, userId: string, workDate: string): Promise<boolean> {
+    logger.repositoryQuery('TimeEntry', 'Checking existence', { userId, workDate })
+
+    const count = await tx.read(this.entries).where({ user_ID: userId, workDate }).count()
+
+    logger.repositoryResult('TimeEntry', 'Existence check', { exists: count > 0 })
+    return count > 0
+  }
+
+  async getEntriesForUserInRange(
+    tx: Transaction,
+    userId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TimeEntry[]> {
+    logger.repositoryQuery('TimeEntry', 'Fetching entries in range', {
+      userId,
+      startDate,
+      endDate,
+    })
+
+    const entries = await tx
+      .read(this.entries)
+      .where({
+        user_ID: userId,
+        workDate: { '>=': startDate, '<=': endDate },
+      })
+      .orderBy('workDate')
+
+    logger.repositoryResult('TimeEntry', `Found ${entries.length} entries`)
+    return entries
+  }
+
+  async create(tx: Transaction, entry: TimeEntry): Promise<TimeEntry> {
+    logger.repositoryQuery('TimeEntry', 'Creating entry', {
+      userId: entry.user_ID,
+      date: entry.workDate,
+    })
+
+    const created = await tx.create(this.entries).entries(entry)
+
+    logger.repositoryResult('TimeEntry', 'Entry created', { id: created.ID })
+    return created
+  }
+
+  async update(tx: Transaction, id: string, data: Partial<TimeEntry>): Promise<void> {
+    logger.repositoryQuery('TimeEntry', 'Updating entry', { id, fields: Object.keys(data) })
+
+    await tx.update(this.entries).set(data).where({ ID: id })
+
+    logger.repositoryResult('TimeEntry', 'Entry updated', { id })
+  }
+}
+```
+
+## Vorteile
+
+### 1. Typsicherheit
+
+```typescript
+// Mit Repository: Vollständige TypeScript-Unterstützung
+const entry: TimeEntry = await repo.findById(tx, entryId)
+entry.durationHoursNet // ✅ Typsicher
+
+// Ohne Repository: Nur `any`
+const entry = await SELECT.from('TimeEntries').where({ ID: entryId })
+entry.durationHoursNet // ⚠️ Keine Type-Checks
+```
+
+### 2. Wiederverwendbare Queries
+
+```typescript
+// Business-spezifische Query-Methoden
+async existsByUserAndDate(tx, userId, workDate): Promise<boolean>
+async getMonthlyEntries(tx, userId, year, month): Promise<TimeEntry[]>
+async getEntriesWithOvertime(tx, userId): Promise<TimeEntry[]>
+```
+
+### 3. Zentrales Logging
+
+```typescript
+// Alle Queries werden strukturiert geloggt
+logger.repositoryQuery('TimeEntry', 'Finding by ID', { id })
+logger.repositoryResult('TimeEntry', 'Found entry', { id })
+logger.repositoryNotFound('TimeEntry', 'Not found', { id })
+```
+
+### 4. Einfaches Testing
+
+```typescript
+describe('CreateTimeEntryCommand', () => {
+  it('should check for existing entries', async () => {
+    const mockRepo = {
+      existsByUserAndDate: jest.fn().mockResolvedValue(true)
+    };
+
+    const command = new CreateTimeEntryCommand(mockRepo, ...);
+
+    await expect(command.execute(tx, data))
+      .rejects.toThrow('Entry already exists');
+  });
+});
+```
+
+## Implementierung in CAPture Time
+
+### Repository-Hierarchie
+
+```
+srv/track-service/handler/repositories/
+├── TimeEntryRepository.ts
+├── UserRepository.ts
+├── ProjectRepository.ts
+├── ActivityTypeRepository.ts
+├── EntryTypeRepository.ts
+├── CustomizingRepository.ts
+└── index.ts  # Barrel Export
+```
+
+### Nutzung in Commands
+
+```typescript
+export class CreateTimeEntryCommand {
+  constructor(
+    private repo: TimeEntryRepository,
+    private userRepo: UserRepository,
+    private validator: TimeEntryValidator
+  ) {}
+
+  async execute(tx: Transaction, data: TimeEntryInput): Promise<TimeEntry> {
+    // Repository für Validierung
+    const exists = await this.repo.existsByUserAndDate(tx, data.user_ID, data.workDate)
+
+    if (exists) {
+      throw new ConflictError('Entry already exists')
+    }
+
+    // User-Repository für zusätzliche Daten
+    const user = await this.userRepo.findById(tx, data.user_ID)
+    const expectedHours = user.expectedDailyHoursDec
+
+    // Berechnung...
+    const entry = this.factory.create(data, expectedHours)
+
+    // Repository für Persistierung
+    return await this.repo.create(tx, entry)
+  }
+}
+```
+
+### ServiceContainer Integration
+
+```typescript
+class ServiceContainer {
+  buildRepositories(entities: any): void {
+    this.repos.set('timeEntry', new TimeEntryRepository(entities))
+    this.repos.set('user', new UserRepository(entities))
+    this.repos.set('project', new ProjectRepository(entities))
+  }
+
+  getRepository<T>(name: string): T {
+    return this.repos.get(name) as T
+  }
+}
+```
+
+## Best Practices
+
+### 1. Business-spezifische Methoden
+
+Statt generischer CRUD:
+
+```typescript
+// ❌ Zu generisch
+async findAll(): Promise<TimeEntry[]>
+
+// ✅ Business-spezifisch
+async getEntriesForUserInRange(userId, start, end): Promise<TimeEntry[]>
+async getEntriesRequiringApproval(userId): Promise<TimeEntry[]>
+async getMonthlyEntries(userId, year, month): Promise<TimeEntry[]>
+```
+
+### 2. Konsistentes Error Handling
+
+```typescript
+async findById(tx: Transaction, id: string): Promise<TimeEntry> {
+  const entry = await tx.read(this.entries).where({ ID: id }).one();
+
+  if (!entry) {
+    throw new NotFoundError(`TimeEntry with ID ${id} not found`);
+  }
+
+  return entry;
+}
+
+// Oder: Nullable Return
+async findById(tx: Transaction, id: string): Promise<TimeEntry | null> {
+  return await tx.read(this.entries).where({ ID: id }).one() || null;
+}
+```
+
+### 3. Strukturiertes Logging
+
+```typescript
+async create(tx: Transaction, entry: TimeEntry): Promise<TimeEntry> {
+  logger.repositoryQuery('TimeEntry', 'Creating', {
+    userId: entry.user_ID,
+    date: entry.workDate,
+    type: entry.entryType_code
+  });
+
+  const created = await tx.create(this.entries).entries(entry);
+
+  logger.repositoryResult('TimeEntry', 'Created', { id: created.ID });
+  return created;
+}
+```
+
+### 4. Transaction-Handling
+
+```typescript
+// ✅ Transaction wird übergeben
+async create(tx: Transaction, entry: TimeEntry): Promise<TimeEntry> {
+  return await tx.create(this.entries).entries(entry);
+}
+
+// ❌ Kein globaler CDS-Aufruf
+async create(entry: TimeEntry): Promise<TimeEntry> {
+  return await INSERT.into(this.entries).entries(entry); // ⚠️ Keine TX!
+}
+```
+
+## Erweiterte Patterns
+
+### Query Builder für komplexe Queries
+
+```typescript
+class TimeEntryQueryBuilder {
+  private query: any
+
+  constructor(
+    private entries: any,
+    private tx: Transaction
+  ) {
+    this.query = tx.read(entries)
+  }
+
+  forUser(userId: string): this {
+    this.query = this.query.where({ user_ID: userId })
+    return this
+  }
+
+  inDateRange(start: string, end: string): this {
+    this.query = this.query.where({
+      workDate: { '>=': start, '<=': end },
+    })
+    return this
+  }
+
+  withEntryType(type: string): this {
+    this.query = this.query.where({ entryType_code: type })
+    return this
+  }
+
+  async execute(): Promise<TimeEntry[]> {
+    return await this.query
+  }
+}
+
+// Nutzung
+const entries = await new TimeEntryQueryBuilder(entities.TimeEntries, tx)
+  .forUser(userId)
+  .inDateRange('2025-01-01', '2025-01-31')
+  .withEntryType('W')
+  .execute()
+```
+
+## Alternativen
+
+### Option 1: Direkter CDS-Zugriff
+
+❌ Keine Wiederverwendung, keine Typsicherheit
+
+### Option 2: Generic Data Service
+
+⚠️ Zu abstrakt, verliert Business-Kontext
+
+### Option 3: Repository Pattern (gewählt)
+
+✅ Balance zwischen Abstraktion und Pragmatismus
+
+## Trade-offs
+
+**Vorteile:**
+
+- ✅ Typsicherheit durch TypeScript
+- ✅ Wiederverwendbare Queries
+- ✅ Zentrale Logging-Strategie
+- ✅ Einfaches Testing (Mocking)
+- ✅ Klare Verantwortlichkeiten
+
+**Nachteile:**
+
+- ⚠️ Mehr Code (7 Repositories in CAPture Time)
+- ⚠️ Indirektion zwischen Command und DB
+- ⚠️ Zusätzliche Abstraktionsschicht
+
+## Wann Repository Pattern nutzen?
+
+**✅ Nutzen wenn:**
+
+- Mehrere Commands auf gleiche Entitäten zugreifen
+- Komplexe Queries wiederverwendet werden
+- Unit-Tests für Business-Logik wichtig sind
+- TypeScript-Typsicherheit gewünscht ist
+
+**❌ Nicht nutzen wenn:**
+
+- Nur einfache CRUD-Operationen
+- Kleine Anwendung (< 5 Entitäten)
+- Keine Business-Logik außerhalb von Handlern
+
+## Fazit
+
+Das Repository Pattern ist ein zentraler Baustein für wartbare CAP-Anwendungen. Es ermöglicht **Clean Architecture** durch klare Trennung von Business-Logik und Datenzugriff.
+
+In Kombination mit dem [Command Pattern](/notes/command-pattern-cap) entsteht eine hochgradig testbare und wartbare Architektur.
+
+## Siehe auch
+
+- [Command Pattern](/notes/command-pattern-cap) für Business-Logik
+- [Dependency Injection](/notes/dependency-injection-cap) für DI Container
+- [ADR 0007: Repository Pattern](https://github.com/nimble-123/cap-fiori-timetracking/blob/main/docs/ADR/0007-repository-pattern-datenzugriff.md) im Original-Projekt

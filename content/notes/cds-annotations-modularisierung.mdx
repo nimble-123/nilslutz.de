@@ -1,0 +1,525 @@
+---
+title: 'Modularisierung von CDS Annotations'
+summary: 'Strukturierte Organisation von CDS Annotations nach Concerns für wartbare SAP CAP-Anwendungen.'
+tags: ['CAP', 'CDS', 'Architecture', 'Best Practices']
+date: '2025-12-17'
+---
+
+# Modularisierung von CDS Annotations
+
+**CDS Annotations** sind das Herzstück von Fiori Elements Apps. Bei wachsender Komplexität wird eine strukturierte Organisation essentiell für die Wartbarkeit.
+
+## Problem
+
+In kleinen Projekten werden alle Annotations in einer Datei definiert:
+
+```cds
+// ❌ Anti-Pattern: Alles in einer Datei (annotations.cds)
+using TrackService from './track-service';
+
+annotate TrackService.TimeEntries with @(
+  // UI Annotations (300 Zeilen)
+  UI.LineItem: [
+    {Value: workDate, Label: '{i18n>date}'},
+    {Value: startTime, Label: '{i18n>start}'},
+    // ...50 weitere Felder
+  ],
+  UI.FieldGroup #Details: { /* ... */ },
+  UI.HeaderInfo: { /* ... */ },
+
+  // Common Annotations (50 Zeilen)
+  Common.Label: '{i18n>timeEntry}',
+  Common.Text: workDate,
+
+  // Capabilities (30 Zeilen)
+  Capabilities.InsertRestrictions: { /* ... */ },
+  Capabilities.UpdateRestrictions: { /* ... */ },
+
+  // Value Helps (80 Zeilen)
+  Common.ValueList #Project: { /* ... */ },
+  Common.ValueList #EntryType: { /* ... */ },
+
+  // Authorization (40 Zeilen)
+  @restrict: [ /* ... */ ],
+
+  // Field Controls (60 Zeilen)
+  @readonly, @mandatory, @UI.Hidden
+
+  // Analytics (30 Zeilen)
+  Analytics.Measure: true,
+
+  // Search (20 Zeilen)
+  Search.defaultSearchElement: true
+);
+
+// Weitere 5 Entitäten mit jeweils 200-500 Zeilen...
+```
+
+**Probleme:**
+
+- ❌ 600+ Zeilen pro Entität
+- ❌ Schwer zu navigieren (Ctrl+F nötig)
+- ❌ Merge-Konflikte häufig (mehrere Entwickler)
+- ❌ Keine klare Trennung der Concerns
+- ❌ Copy-Paste zwischen Entitäten
+
+## Lösung: Zwei-Ebenen-Struktur
+
+### Strukturierter Ansatz
+
+```
+srv/track-service/annotations/
+├── annotations.cds           # Master Import
+├── common/                   # Shared Concerns
+│   ├── labels.cds            # @Common.Text, Titles
+│   ├── field-controls.cds    # @readonly, @mandatory
+│   ├── capabilities.cds      # Insert/Update Restrictions
+│   ├── value-helps.cds       # @Common.ValueList
+│   ├── authorization.cds     # @restrict
+│   └── search.cds            # Search Configuration
+└── ui/                       # UI-Specific (Fiori Elements)
+    ├── time-entries/
+    │   ├── list.cds          # List Report
+    │   ├── object.cds        # Object Page
+    │   ├── charts.cds        # Charts & Analytics
+    │   └── actions.cds       # Bound Actions UI
+    ├── projects/
+    │   └── basic.cds         # Simple CRUD
+    └── users/
+        └── basic.cds         # Simple CRUD
+```
+
+### Master Import (annotations.cds)
+
+```cds
+// 1. Common Concerns (entity-übergreifend)
+using from './common/labels';
+using from './common/field-controls';
+using from './common/capabilities';
+using from './common/value-helps';
+using from './common/authorization';
+using from './common/search';
+
+// 2. UI-Specific (per entity)
+using from './ui/time-entries/list';
+using from './ui/time-entries/object';
+using from './ui/time-entries/charts';
+using from './ui/time-entries/actions';
+
+using from './ui/projects/basic';
+using from './ui/users/basic';
+```
+
+## Detaillierte Struktur
+
+### 1. Labels (common/labels.cds)
+
+**Zweck:** Texte, Übersetzungen, Titles
+
+```cds
+using TrackService from '../../track-service';
+
+// TimeEntries
+annotate TrackService.TimeEntries with @(
+  Common.Label: '{i18n>timeEntry}',
+  Common.Text: workDate,
+  Common.TextArrangement: #TextOnly
+) {
+  workDate @(
+    Common.Label: '{i18n>workDate}',
+    Common.Text: workDate
+  );
+
+  entryType @(
+    Common.Label: '{i18n>entryType}',
+    Common.Text: entryType.text,
+    Common.TextArrangement: #TextFirst
+  );
+
+  project @(
+    Common.Label: '{i18n>project}',
+    Common.Text: project.name,
+    Common.TextArrangement: #TextOnly
+  );
+}
+
+// Weitere Entitäten...
+```
+
+### 2. Field Controls (common/field-controls.cds)
+
+**Zweck:** @readonly, @mandatory, @UI.Hidden
+
+```cds
+using TrackService from '../../track-service';
+
+annotate TrackService.TimeEntries with {
+  // Read-only Felder (berechnet)
+  durationHoursGross @readonly;
+  durationHoursNet   @readonly;
+  overtimeHours      @readonly;
+  undertimeHours     @readonly;
+
+  // Pflichtfelder
+  user      @mandatory;
+  workDate  @mandatory;
+  startTime @mandatory;
+  endTime   @mandatory;
+
+  // Versteckte technische Felder
+  source    @UI.Hidden;
+  createdAt @UI.Hidden;
+  modifiedAt @UI.Hidden;
+}
+```
+
+### 3. Capabilities (common/capabilities.cds)
+
+**Zweck:** Insert/Update/Delete Restrictions
+
+```cds
+using TrackService from '../../track-service';
+
+annotate TrackService.TimeEntries with @(
+  Capabilities: {
+    InsertRestrictions: {
+      Insertable: true,
+      RequiredProperties: [
+        user_ID,
+        workDate,
+        startTime,
+        endTime,
+        entryType_code
+      ]
+    },
+    UpdateRestrictions: {
+      Updatable: true,
+      NonUpdatableNavigationProperties: [user]
+    },
+    DeleteRestrictions: {
+      Deletable: true
+    },
+    FilterRestrictions: {
+      FilterExpressionRestrictions: [{
+        Property: workDate,
+        AllowedExpressions: 'MultiValue'
+      }]
+    }
+  }
+);
+```
+
+### 4. Value Helps (common/value-helps.cds)
+
+**Zweck:** Dropdowns, F4-Hilfen
+
+```cds
+using TrackService from '../../track-service';
+
+annotate TrackService.TimeEntries with {
+  entryType @(
+    Common.ValueList: {
+      CollectionPath: 'EntryTypes',
+      Parameters: [
+        { $Type: 'Common.ValueListParameterInOut',
+          LocalDataProperty: entryType_code,
+          ValueListProperty: 'code' },
+        { $Type: 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'text' }
+      ]
+    },
+    Common.ValueListWithFixedValues: true
+  );
+
+  project @(
+    Common.ValueList: {
+      CollectionPath: 'Projects',
+      Parameters: [
+        { $Type: 'Common.ValueListParameterInOut',
+          LocalDataProperty: project_ID,
+          ValueListProperty: 'ID' },
+        { $Type: 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'name' },
+        { $Type: 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'number' }
+      ]
+    },
+    Common.ValueListRelevantQualifiers: ['active']
+  );
+}
+```
+
+### 5. UI List Report (ui/time-entries/list.cds)
+
+**Zweck:** List Report Table Configuration
+
+```cds
+using TrackService from '../../../track-service';
+
+annotate TrackService.TimeEntries with @(
+  UI.SelectionFields: [
+    user_ID,
+    workDate,
+    entryType_code,
+    project_ID,
+    status_code
+  ],
+
+  UI.LineItem: [
+    { Value: workDate, Label: '{i18n>workDate}' },
+    { Value: entryType.text, Label: '{i18n>type}' },
+    { Value: project.name, Label: '{i18n>project}' },
+    { Value: startTime, Label: '{i18n>start}' },
+    { Value: endTime, Label: '{i18n>end}' },
+    { Value: durationHoursNet, Label: '{i18n>netHours}',
+      Criticality: netHoursCriticality },
+    { Value: overtimeHours, Label: '{i18n>overtime}',
+      Criticality: overtimeCriticality },
+    { Value: status.name, Label: '{i18n>status}',
+      Criticality: statusCriticality },
+    { $Type: 'UI.DataFieldForAction',
+      Action: 'TrackService.markDone',
+      Label: '{i18n>markDone}' }
+  ],
+
+  UI.PresentationVariant: {
+    SortOrder: [{
+      Property: workDate,
+      Descending: true
+    }],
+    Visualizations: ['@UI.LineItem']
+  }
+);
+```
+
+### 6. UI Object Page (ui/time-entries/object.cds)
+
+**Zweck:** Object Page Sections & Field Groups
+
+```cds
+using TrackService from '../../../track-service';
+
+annotate TrackService.TimeEntries with @(
+  UI.HeaderInfo: {
+    TypeName: '{i18n>timeEntry}',
+    TypeNamePlural: '{i18n>timeEntries}',
+    Title: { Value: workDate },
+    Description: { Value: entryType.text }
+  },
+
+  UI.Identification: [
+    { Value: workDate },
+    { Value: entryType.text },
+    { Value: status.name, Criticality: statusCriticality }
+  ],
+
+  UI.Facets: [
+    { $Type: 'UI.ReferenceFacet',
+      Label: '{i18n>generalInfo}',
+      Target: '@UI.FieldGroup#General' },
+    { $Type: 'UI.ReferenceFacet',
+      Label: '{i18n>timeDetails}',
+      Target: '@UI.FieldGroup#TimeDetails' },
+    { $Type: 'UI.ReferenceFacet',
+      Label: '{i18n>calculations}',
+      Target: '@UI.FieldGroup#Calculations' },
+    { $Type: 'UI.ReferenceFacet',
+      Label: '{i18n>attachments}',
+      Target: 'attachments/@UI.LineItem' }
+  ],
+
+  UI.FieldGroup #General: {
+    Data: [
+      { Value: user.name },
+      { Value: project.name },
+      { Value: activity.text },
+      { Value: workLocation.text },
+      { Value: travelType.text }
+    ]
+  },
+
+  UI.FieldGroup #TimeDetails: {
+    Data: [
+      { Value: startTime },
+      { Value: endTime },
+      { Value: breakMin }
+    ]
+  },
+
+  UI.FieldGroup #Calculations: {
+    Data: [
+      { Value: durationHoursGross },
+      { Value: durationHoursNet },
+      { Value: overtimeHours, Criticality: overtimeCriticality },
+      { Value: undertimeHours, Criticality: undertimeCriticality }
+    ]
+  }
+);
+```
+
+## Vorteile
+
+### 1. Übersichtlichkeit
+
+```
+Vorher: 1 Datei × 2.500 Zeilen = ❌ unübersichtlich
+Nachher: 15 Dateien × ~150 Zeilen = ✅ navigierbar
+```
+
+### 2. Klare Verantwortlichkeiten
+
+Jede Datei hat **einen** Zweck:
+
+- `labels.cds` → Texte
+- `list.cds` → List Report
+- `object.cds` → Object Page
+
+### 3. Paralleles Arbeiten
+
+```
+👤 Developer A: Arbeitet an List Report (list.cds)
+👤 Developer B: Arbeitet an Object Page (object.cds)
+→ Keine Merge-Konflikte ✅
+```
+
+### 4. Wiederverwendung
+
+```cds
+// Shared Field Controls für alle Entitäten
+using from './common/field-controls';
+
+// Spezifische UI nur wo benötigt
+using from './ui/time-entries/list';
+```
+
+## Best Practices
+
+### 1. Naming Conventions
+
+```
+✅ Gut: labels.cds, list.cds, object.cds
+❌ Schlecht: anno1.cds, stuff.cds, temp.cds
+```
+
+### 2. Ein Concern pro Datei
+
+```cds
+// ✅ Gut: Nur Labels
+annotate TimeEntries with {
+  workDate @Common.Label: '{i18n>workDate}';
+}
+
+// ❌ Schlecht: Labels + UI gemischt
+annotate TimeEntries with {
+  workDate @Common.Label: '{i18n>workDate}'
+           @UI.LineItem;  // Falscher Concern!
+}
+```
+
+### 3. Master Import
+
+```cds
+// annotations.cds als zentrale Import-Datei
+using from './common/labels';
+using from './common/capabilities';
+using from './ui/time-entries/list';
+```
+
+### 4. Konsistente Struktur
+
+```
+Alle Entitäten folgen gleichem Muster:
+  ui/entity-name/
+    ├── list.cds
+    ├── object.cds
+    └── charts.cds (optional)
+```
+
+## Implementierung in CAPture Time
+
+### Vollständige Struktur
+
+```
+srv/track-service/annotations/
+├── annotations.cds           # Master Import (20 Zeilen)
+├── common/
+│   ├── labels.cds            # 150 Zeilen
+│   ├── field-controls.cds    # 80 Zeilen
+│   ├── capabilities.cds      # 120 Zeilen
+│   ├── value-helps.cds       # 200 Zeilen
+│   ├── authorization.cds     # 100 Zeilen
+│   └── search.cds            # 50 Zeilen
+└── ui/
+    ├── time-entries/
+    │   ├── list.cds          # 150 Zeilen
+    │   ├── object.cds        # 200 Zeilen
+    │   ├── charts.cds        # 100 Zeilen
+    │   └── actions.cds       # 80 Zeilen
+    ├── projects/
+    │   └── basic.cds         # 100 Zeilen
+    └── users/
+        └── basic.cds         # 80 Zeilen
+
+Gesamt: ~1.400 Zeilen in 14 Dateien
+Statt: 1.400 Zeilen in 1 Datei ❌
+```
+
+## Alternativen
+
+### Option 1: Monolith (1 Datei)
+
+❌ Unübersichtlich ab 500+ Zeilen
+
+### Option 2: Pro Entität (1 Datei pro Entity)
+
+⚠️ Besser, aber immer noch große Dateien
+
+### Option 3: Nach Concerns (gewählt)
+
+✅ Maximale Modularität
+
+## Trade-offs
+
+**Vorteile:**
+
+- ✅ Übersichtliche Dateien (< 200 Zeilen)
+- ✅ Klare Trennung der Concerns
+- ✅ Paralleles Arbeiten ohne Konflikte
+- ✅ Einfaches Finden von Annotations
+
+**Nachteile:**
+
+- ⚠️ Mehr Dateien (14 statt 1)
+- ⚠️ Mehr Navigationsaufwand zwischen Dateien
+- ⚠️ Initialer Setup-Aufwand
+
+## Wann modularisieren?
+
+**✅ Modularisieren wenn:**
+
+- Annotations-Datei > 300 Zeilen
+- Mehrere Entwickler arbeiten an UI
+- Mehrere Fiori Apps (List Report, Analytical List)
+- Komplexe Object Pages mit vielen Facets
+
+**❌ Nicht modularisieren wenn:**
+
+- Nur 1-2 Entitäten
+- Sehr einfache CRUD-UI
+- Team < 2 Entwickler
+- Annotations < 200 Zeilen
+
+## Fazit
+
+Die **Modularisierung nach Concerns** ist essentiell für wartbare Fiori Elements Apps. Sie ermöglicht:
+
+- **Übersichtlichen Code** durch kleine Dateien
+- **Paralleles Arbeiten** ohne Merge-Konflikte
+- **Klare Verantwortlichkeiten** pro Datei
+- **Einfache Navigation** durch logische Struktur
+
+## Siehe auch
+
+- [Fiori Elements Documentation](https://ui5.sap.com/test-resources/sap/fe/core/fpmExplorer/index.html)
+- [CDS Annotations Reference](https://cap.cloud.sap/docs/advanced/odata#annotations)
+- [ADR 0006: CDS Annotations](https://github.com/nimble-123/cap-fiori-timetracking/blob/main/docs/ADR/0006-modularisierung-cds-annotationen.md) im Original-Projekt

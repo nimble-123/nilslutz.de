@@ -1,0 +1,495 @@
+---
+title: 'Strategy Pattern für Algorithmen in SAP CAP'
+summary: 'Austauschbare Algorithmen mit dem Strategy Pattern - am Beispiel von Bulk-Generierungslogik in SAP CAP.'
+tags: ['Design Pattern', 'CAP', 'TypeScript', 'Algorithms']
+date: '2025-12-17'
+---
+
+# Strategy Pattern in SAP CAP
+
+Das **Strategy Pattern** kapselt Algorithmen als austauschbare Objekte. In SAP CAP ist es ideal für verschiedene Berechnungslogiken oder Generierungsstrategien.
+
+## Problem
+
+Unterschiedliche Algorithmen werden oft mit Conditional Logic implementiert:
+
+```typescript
+// ❌ Anti-Pattern: If/Else-Kaskaden
+export class GenerateTimeEntriesCommand {
+  async execute(req: Request, params: any) {
+    if (params.period === 'monthly') {
+      // 50 Zeilen Monats-Logik
+      const startDate = `${params.year}-${params.month}-01`
+      const endDate = this.getLastDayOfMonth(params.year, params.month)
+      const workingDays = this.getWorkingDays(startDate, endDate)
+
+      for (const day of workingDays) {
+        // Feiertage checken
+        // Wochenenden überspringen
+        // Entry erstellen
+      }
+    } else if (params.period === 'yearly') {
+      // 80 Zeilen Jahres-Logik
+      for (let month = 1; month <= 12; month++) {
+        const startDate = `${params.year}-${month}-01`
+        // ...mehr Logik
+      }
+    } else if (params.period === 'quarterly') {
+      // 60 Zeilen Quartals-Logik
+      // ...
+    }
+  }
+}
+```
+
+**Probleme:**
+
+- ❌ God Class (200+ Zeilen in einer Methode)
+- ❌ Schwer testbar (alle Szenarien in einem Test)
+- ❌ Keine Wiederverwendung einzelner Algorithmen
+- ❌ Violation von Open/Closed Principle
+
+## Lösung: Strategy Pattern
+
+### Strategy Interface
+
+```typescript
+export interface GenerationStrategy {
+  generate(tx: Transaction, params: GenerationParams, holidayMap: Map<string, string>): Promise<TimeEntry[]>
+}
+
+export interface GenerationParams {
+  user_ID: string
+  year: number
+  month?: number
+  quarter?: number
+  stateCode?: string
+}
+```
+
+### Konkrete Strategien
+
+#### MonthlyGenerationStrategy
+
+```typescript
+export class MonthlyGenerationStrategy implements GenerationStrategy {
+  constructor(
+    private dateUtils: DateUtils,
+    private factory: TimeEntryFactory
+  ) {}
+
+  async generate(tx: Transaction, params: GenerationParams, holidayMap: Map<string, string>): Promise<TimeEntry[]> {
+    const { user_ID, year, month } = params
+
+    // 1. Monatsgrenzen berechnen
+    const startDate = new Date(year, month! - 1, 1)
+    const endDate = this.dateUtils.getLastDayOfMonth(year, month!)
+
+    // 2. Alle Tage im Monat
+    const entries: TimeEntry[] = []
+    let currentDate = new Date(startDate)
+
+    while (currentDate <= endDate) {
+      const dateStr = this.dateUtils.toISODate(currentDate)
+
+      // 3. Wochenende überspringen
+      if (this.dateUtils.isWeekend(currentDate)) {
+        currentDate.setDate(currentDate.getDate() + 1)
+        continue
+      }
+
+      // 4. Feiertag?
+      const entryType = holidayMap.has(dateStr) ? 'H' : 'W'
+
+      // 5. Entry erstellen
+      entries.push(this.factory.createGenerated(user_ID, dateStr, entryType))
+
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    return entries
+  }
+}
+```
+
+#### YearlyGenerationStrategy
+
+```typescript
+export class YearlyGenerationStrategy implements GenerationStrategy {
+  constructor(private monthlyStrategy: MonthlyGenerationStrategy) {}
+
+  async generate(tx: Transaction, params: GenerationParams, holidayMap: Map<string, string>): Promise<TimeEntry[]> {
+    const { user_ID, year } = params
+    const allEntries: TimeEntry[] = []
+
+    // Strategie: Wiederverwendung der MonthlyStrategy
+    for (let month = 1; month <= 12; month++) {
+      const monthlyEntries = await this.monthlyStrategy.generate(tx, { ...params, month }, holidayMap)
+
+      allEntries.push(...monthlyEntries)
+    }
+
+    return allEntries
+  }
+}
+```
+
+### Context (Command) nutzt Strategy
+
+```typescript
+export class GenerateTimeEntriesCommand {
+  constructor(
+    private strategies: Map<string, GenerationStrategy>,
+    private holidayService: HolidayService,
+    private validator: GenerationValidator
+  ) {}
+
+  async execute(req: Request, params: GenerationParams): Promise<TimeEntry[]> {
+    // 1. Strategy auswählen
+    const period = params.month ? 'monthly' : 'yearly'
+    const strategy = this.strategies.get(period)
+
+    if (!strategy) {
+      throw new Error(`Unknown generation period: ${period}`)
+    }
+
+    // 2. Feiertage laden
+    const holidayMap = await this.holidayService.getHolidays(params.year, params.stateCode)
+
+    // 3. Strategy ausführen
+    const entries = await strategy.generate(req, params, holidayMap)
+
+    // 4. Validieren
+    await this.validator.validateGenerated(entries)
+
+    return entries
+  }
+}
+```
+
+## Vorteile
+
+### 1. Open/Closed Principle
+
+Neue Strategien ohne Änderung bestehenden Codes:
+
+```typescript
+// Neue Strategy hinzufügen
+export class QuarterlyGenerationStrategy implements GenerationStrategy {
+  async generate(tx, params, holidayMap): Promise<TimeEntry[]> {
+    // Quartals-Logik
+    const startMonth = (params.quarter! - 1) * 3 + 1
+    const endMonth = startMonth + 2
+
+    // ...
+  }
+}
+
+// Im Container registrieren
+container.strategies.set('quarterly', new QuarterlyGenerationStrategy(dateUtils, factory))
+```
+
+### 2. Single Responsibility
+
+Jede Strategy hat **eine** Verantwortung:
+
+```typescript
+MonthlyGenerationStrategy  → Generiert 1 Monat
+YearlyGenerationStrategy   → Generiert 12 Monate (nutzt Monthly)
+QuarterlyGenerationStrategy → Generiert 3 Monate
+CustomRangeStrategy        → Generiert beliebigen Zeitraum
+```
+
+### 3. Komposition statt Vererbung
+
+```typescript
+// Yearly Strategy nutzt Monthly Strategy
+export class YearlyGenerationStrategy {
+  constructor(private monthlyStrategy: MonthlyGenerationStrategy) {}
+
+  async generate(...) {
+    // Wiederverwendung statt Duplikation
+    for (let month = 1; month <= 12; month++) {
+      const entries = await this.monthlyStrategy.generate(...);
+      allEntries.push(...entries);
+    }
+  }
+}
+```
+
+### 4. Einfaches Testing
+
+```typescript
+describe('MonthlyGenerationStrategy', () => {
+  it('should skip weekends', async () => {
+    const strategy = new MonthlyGenerationStrategy(dateUtils, factory)
+
+    const entries = await strategy.generate(
+      tx,
+      {
+        user_ID: 'user-1',
+        year: 2025,
+        month: 1,
+      },
+      new Map()
+    )
+
+    // Prüfe: Keine Samstage/Sonntage
+    const weekendEntries = entries.filter((e) => dateUtils.isWeekend(new Date(e.workDate)))
+
+    expect(weekendEntries).toHaveLength(0)
+  })
+
+  it('should mark holidays correctly', async () => {
+    const holidays = new Map([['2025-01-01', 'Neujahr']])
+
+    const entries = await strategy.generate(tx, params, holidays)
+
+    const neujahr = entries.find((e) => e.workDate === '2025-01-01')
+    expect(neujahr?.entryType_code).toBe('H')
+  })
+})
+```
+
+## Implementierung in CAPture Time
+
+### Strategy-Hierarchie
+
+```
+srv/track-service/handler/strategies/
+├── MonthlyGenerationStrategy.ts
+├── YearlyGenerationStrategy.ts
+└── index.ts  # Barrel Export
+```
+
+### ServiceContainer Integration
+
+```typescript
+class ServiceContainer {
+  buildStrategies(): void {
+    const dateUtils = this.getService<DateUtils>('dateUtils')
+    const factory = this.getFactory<TimeEntryFactory>('timeEntry')
+
+    // Monthly Strategy
+    const monthlyStrategy = new MonthlyGenerationStrategy(dateUtils, factory)
+    this.strategies.set('monthly', monthlyStrategy)
+
+    // Yearly Strategy (nutzt Monthly)
+    const yearlyStrategy = new YearlyGenerationStrategy(monthlyStrategy)
+    this.strategies.set('yearly', yearlyStrategy)
+  }
+
+  getStrategy<T extends GenerationStrategy>(name: string): T {
+    if (!this.strategies.has(name)) {
+      throw new Error(`Strategy '${name}' not found`)
+    }
+    return this.strategies.get(name) as T
+  }
+}
+```
+
+### Nutzung in Command
+
+```typescript
+export class GenerateMonthlyCommand {
+  constructor(
+    private strategy: MonthlyGenerationStrategy,
+    private repo: TimeEntryRepository,
+    private holidayService: HolidayService
+  ) {}
+
+  async execute(req: Request, params: GenerationParams): Promise<Result> {
+    // 1. Feiertage laden
+    const holidays = await this.holidayService.getHolidays(params.year, params.stateCode)
+
+    // 2. Strategy ausführen
+    const newEntries = await this.strategy.generate(req, params, holidays)
+
+    // 3. Persistieren
+    for (const entry of newEntries) {
+      await this.repo.create(req, entry)
+    }
+
+    return { created: newEntries.length }
+  }
+}
+```
+
+## Best Practices
+
+### 1. Strategy Selection Pattern
+
+```typescript
+class StrategySelector {
+  select(params: GenerationParams): string {
+    if (params.month) return 'monthly'
+    if (params.quarter) return 'quarterly'
+    return 'yearly'
+  }
+}
+
+// Im Command
+const strategyName = this.selector.select(params)
+const strategy = this.container.getStrategy(strategyName)
+```
+
+### 2. Default Strategy
+
+```typescript
+class GenerationCommand {
+  private defaultStrategy: GenerationStrategy;
+
+  constructor(strategies: Map<string, GenerationStrategy>) {
+    this.defaultStrategy = strategies.get('monthly')!;
+  }
+
+  async execute(params: GenerationParams) {
+    const strategy = this.selectStrategy(params) ?? this.defaultStrategy;
+    return await strategy.generate(...);
+  }
+}
+```
+
+### 3. Strategy Composition
+
+```typescript
+// Decorator für Logging
+class LoggingGenerationStrategy implements GenerationStrategy {
+  constructor(private inner: GenerationStrategy) {}
+
+  async generate(tx, params, holidays): Promise<TimeEntry[]> {
+    logger.info('Generation started', params)
+
+    const entries = await this.inner.generate(tx, params, holidays)
+
+    logger.info(`Generated ${entries.length} entries`)
+    return entries
+  }
+}
+
+// Wrap Strategy
+const strategy = new LoggingGenerationStrategy(new MonthlyGenerationStrategy(dateUtils, factory))
+```
+
+### 4. Strategy Factory
+
+```typescript
+class GenerationStrategyFactory {
+  create(type: string): GenerationStrategy {
+    switch (type) {
+      case 'monthly':
+        return new MonthlyGenerationStrategy(this.dateUtils, this.factory)
+      case 'yearly':
+        return new YearlyGenerationStrategy(this.create('monthly') as MonthlyGenerationStrategy)
+      default:
+        throw new Error(`Unknown strategy type: ${type}`)
+    }
+  }
+}
+```
+
+## Weitere Anwendungsfälle
+
+### Berechnungsstrategien
+
+```typescript
+interface TimeCalculationStrategy {
+  calculate(entry: TimeEntryInput): TimeCalculationResult
+}
+
+class StandardTimeCalculation implements TimeCalculationStrategy {
+  calculate(entry: TimeEntryInput): TimeCalculationResult {
+    const gross = this.diffInHours(entry.startTime, entry.endTime)
+    const net = gross - entry.breakMin / 60
+    return { gross, net, overtime: Math.max(0, net - 8) }
+  }
+}
+
+class FlexTimeCalculation implements TimeCalculationStrategy {
+  calculate(entry: TimeEntryInput): TimeCalculationResult {
+    // Flexible Arbeitszeit ohne feste 8h
+    // ...
+  }
+}
+```
+
+### Validierungsstrategien
+
+```typescript
+interface ValidationStrategy {
+  validate(entry: TimeEntry): ValidationResult
+}
+
+class StrictValidation implements ValidationStrategy {
+  validate(entry: TimeEntry): ValidationResult {
+    // Strenge Regeln: Pausenzeiten, Min/Max Arbeitszeit
+  }
+}
+
+class LenientValidation implements ValidationStrategy {
+  validate(entry: TimeEntry): ValidationResult {
+    // Lockere Regeln für spezielle User-Gruppen
+  }
+}
+```
+
+## Alternativen
+
+### Option 1: If/Else in Command
+
+❌ Violates Open/Closed, nicht erweiterbar
+
+### Option 2: Subclassing
+
+⚠️ Führt zu tiefen Vererbungshierarchien
+
+### Option 3: Strategy Pattern (gewählt)
+
+✅ Flexibel, testbar, komposierbar
+
+## Trade-offs
+
+**Vorteile:**
+
+- ✅ Open/Closed Principle (neue Strategies ohne Änderung)
+- ✅ Single Responsibility (eine Strategy = ein Algorithmus)
+- ✅ Testbar (jede Strategy isoliert testbar)
+- ✅ Komposition (Strategies nutzen andere Strategies)
+
+**Nachteile:**
+
+- ⚠️ Mehr Klassen (2 Strategies in CAPture Time)
+- ⚠️ Indirektion (Command → Strategy)
+- ⚠️ Strategy-Selection-Logik nötig
+
+## Wann Strategy Pattern nutzen?
+
+**✅ Nutzen wenn:**
+
+- Mehrere Varianten eines Algorithmus existieren
+- Conditional Logic zu komplex wird (> 3 Branches)
+- Algorithmen austauschbar sein sollen
+- Algorithmen wiederverwendet werden
+
+**❌ Nicht nutzen wenn:**
+
+- Nur ein Algorithmus existiert
+- Algorithmus trivial ist (< 10 Zeilen)
+- Keine Variation erwartet wird
+
+## Fazit
+
+Das **Strategy Pattern** ist ideal für austauschbare Algorithmen in SAP CAP. Es ermöglicht:
+
+- **Flexible Berechnungslogik** ohne If/Else-Kaskaden
+- **Wiederverwendbare Algorithmen** durch Komposition
+- **Testbare Business-Logik** durch isolierte Strategies
+- **Erweiterbarkeit** ohne bestehenden Code zu ändern
+
+In Kombination mit [Command Pattern](/notes/command-pattern-cap) und [Repository Pattern](/notes/repository-pattern-cap) entsteht eine Clean Architecture.
+
+## Siehe auch
+
+- [Command Pattern](/notes/command-pattern-cap) für Business-Operationen
+- [Factory Pattern](https://refactoring.guru/design-patterns/factory-method) für Objekterzeugung
+- [ADR 0003: Zeitberechnung](https://github.com/nimble-123/cap-fiori-timetracking/blob/main/docs/ADR/0003-zeitberechnung-und-factories.md) im Original-Projekt

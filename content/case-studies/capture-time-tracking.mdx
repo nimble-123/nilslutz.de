@@ -1,0 +1,110 @@
+---
+title: 'CAPture Time: Enterprise Zeiterfassungssystem'
+summary: 'Eine vollständig typisierte Enterprise-Zeiterfassungslösung mit SAP CAP, TypeScript und Fiori Elements - Showcase für Clean Architecture und Design Patterns.'
+tags: ['CAP', 'TypeScript', 'Clean Architecture', 'Fiori Elements', 'SAP BTP']
+period: '2024-2025'
+role: 'Full-Stack Architect & Developer'
+stack: ['SAP CAP v9', 'TypeScript 100%', 'SAP UI5 1.120+', 'SAP HANA Cloud', 'GitHub Actions']
+featured: true
+metrics: ['100% TypeScript', '45 Pattern-Klassen', '10 Design Patterns', '5-Tier Architektur']
+---
+
+# Die Herausforderung
+
+Enterprise Zeiterfassung ist komplex: Projektbuchungen, Überstunden-Tracking, Urlaubsverwaltung, Feiertags-Integration für 16 Bundesländer, Saldenberechnungen und dabei strikte Business Rules einhalten. Die Lösung musste sowohl für schnelle Masseneingaben als auch detaillierte Projekterfassungen geeignet sein.
+
+# Die Lösung
+
+**CAPture Time** ist eine vollständig in TypeScript entwickelte Zeiterfassungsanwendung, die auf SAP Cloud Application Programming Model (CAP) basiert und Clean Architecture-Prinzipien konsequent umsetzt.
+
+## Architektur-Highlights
+
+### 5-Tier Clean Architecture
+
+Die Anwendung folgt einer strikten Schichtentrennung:
+
+1. **Presentation Layer**: Multi-App-Strategie mit Fiori Elements und Custom UI5
+2. **Application Layer**: Commands für CRUD, Generation und Balance-Abfragen
+3. **Business Logic Layer**: Domain Services mit umfangreicher Validierung
+4. **Data Access Layer**: Repository Pattern für lose Kopplung
+5. **Infrastructure Layer**: External APIs (Feiertags-API), Logging, Attachments
+
+### 10 Design Patterns in Produktion
+
+- **Command Pattern**: 11 Commands für CRUD, Bulk-Generation und Balance-Queries
+- **Repository Pattern**: 7 Repositories für sauberen Datenzugriff
+- **Factory Pattern**: TimeEntryFactory für komplexe Objekterzeugung
+- **Strategy Pattern**: Austauschbare Algorithmen für Monats-/Jahresgenerierung
+- **Validator Pattern**: 7 Domain-spezifische Validatoren
+- **Registry Pattern**: HandlerRegistry für Event-Driven Architecture
+- **Builder Pattern**: Fluent API für Handler-Setup
+- **Dependency Injection**: ServiceContainer mit 6 Kategorien
+- **Service Layer Pattern**: 7 Domain Services
+- **Event Handler Pattern**: CAP Event-Orchestrierung
+
+## Key Features
+
+### Zeiterfassung & Bulk-Generation
+
+- **CRUD für TimeEntries** mit automatischer Berechnung (Brutto/Netto/Überstunden)
+- **Bulk-Generation**: Monatliche oder jährliche Generierung inklusive Feiertage
+- **Feiertags-Integration**: API-Integration für alle 16 deutschen Bundesländer
+- **Balance-Tracking**: Monatssaldi, kumulierter Gesamtsaldo mit Criticality-Indikatoren
+
+### Multi-App UI-Strategie
+
+**1. Timetable App (Fiori Elements)**
+
+- Annotation-basierte List Report/Object Page
+- Schnelle manuelle Einzelerfassung
+- Volle Kontrolle über alle Zeitfelder
+
+**2. Dashboard App (Custom UI5)**
+
+- TypeScript-basierte Custom Controls
+- Flexible Dashboard-Widgets
+- MVC Pattern mit XML Views
+
+**3. Manage Activity Types (Fiori Elements)**
+
+- Stammdatenpflege für Activity Types
+- Basic V4 Template
+
+### Production-Ready Features
+
+- **Validierung & Error Handling**: Business Rules, Eindeutigkeit (1 Entry/User/Tag)
+- **Strukturiertes Logging**: Application Logging Service Integration
+- **Dokumentenanhänge**: Via `@cap-js/attachments` mit Malware-Scanning
+- **IAS & AMS Ready**: `xs-security.json`, AMS-Policies & DCL für SAP BTP
+- **Cloud-native Deployment**: `mta.yaml` für SAP BTP mit HANA, Attachments, Logging
+
+## Technische Exzellenz
+
+### 100% TypeScript Backend
+
+Kein einziges JavaScript-File im Backend:
+
+- Vollständige Typsicherheit
+- Auto-generierte `@cds-models` Types
+- TypeScript-first CAP Services
+
+### Projekt-Stats
+
+- **45 Pattern-Klassen** + 14 Barrel Exports
+- **Arc42 Architekturdokumentation** mit Mermaid-Diagrammen
+- **ADRs (Architecture Decision Records)** für wichtige Design-Entscheidungen
+- **CI/CD**: GitHub Actions für automatisierte Tests und Deployments
+- **SAP CAP Console**: Native Desktop-App für Dev, Deployment & Monitoring
+
+# Das Ergebnis
+
+Ein produktionsreifes, hochgradig wartbares Enterprise-System, das als **Showcase für moderne SAP-Entwicklung** dient:
+
+- ✅ **Clean Architecture** mit klarer Trennung der Verantwortlichkeiten
+- ✅ **Design Patterns** in realen Anwendungsfällen
+- ✅ **TypeScript-first** für maximale Typsicherheit
+- ✅ **Multi-App Strategy** für verschiedene Use Cases
+- ✅ **Production-Ready** mit Logging, Security und Cloud-Deployment
+- ✅ **Ausführlich dokumentiert** für Entwickler und Architekten
+
+Das Projekt demonstriert, wie moderne Softwarearchitektur-Prinzipien erfolgreich in der SAP-Welt umgesetzt werden können, ohne Kompromisse bei Wartbarkeit oder Qualität einzugehen.

@@ -1,0 +1,481 @@
+---
+title: 'Dependency Injection in SAP CAP mit ServiceContainer'
+summary: 'Typsichere Dependency Injection für Clean Architecture in SAP CAP-Anwendungen ohne externe DI-Frameworks.'
+tags: ['Design Pattern', 'CAP', 'TypeScript', 'Clean Architecture', 'DI']
+date: '2025-12-17'
+---
+
+# Dependency Injection mit ServiceContainer Pattern
+
+**Dependency Injection (DI)** ist ein fundamentales Prinzip für testbare und wartbare Software. Der **ServiceContainer** ist ein lightweight DI-Pattern speziell für SAP CAP-Anwendungen.
+
+## Problem
+
+Direkte Instanziierung führt zu tight coupling:
+
+```typescript
+// ❌ Anti-Pattern: Direkte Dependencies
+export class CreateTimeEntryCommand {
+  private repo = new TimeEntryRepository() // Hard-coded!
+  private validator = new TimeEntryValidator() // Hard-coded!
+  private timeCalc = new TimeCalculationService() // Hard-coded!
+
+  async execute(data: TimeEntryInput) {
+    // Command ist fest an konkrete Implementierungen gebunden
+  }
+}
+
+// Testing ist schwierig
+test('CreateTimeEntryCommand', () => {
+  const command = new CreateTimeEntryCommand()
+  // ⚠️ Kann nicht mocken - verwendet echte DB!
+})
+```
+
+**Probleme:**
+
+- ❌ Tight Coupling (feste Abhängigkeiten)
+- ❌ Schwer testbar (keine Mocks möglich)
+- ❌ Keine zentrale Konfiguration
+- ❌ Zirkul�re Dependencies möglich
+
+## Lösung: ServiceContainer Pattern
+
+### Grundprinzip
+
+Der ServiceContainer verwaltet alle Dependencies zentral:
+
+```typescript
+export class ServiceContainer {
+  private repos = new Map<string, any>()
+  private services = new Map<string, any>()
+  private validators = new Map<string, any>()
+  private strategies = new Map<string, any>()
+  private commands = new Map<string, any>()
+  private factories = new Map<string, any>()
+
+  // Typ-sichere Getter
+  getRepository<T>(name: string): T {
+    if (!this.repos.has(name)) {
+      throw new Error(`Repository '${name}' not found`)
+    }
+    return this.repos.get(name) as T
+  }
+
+  getCommand<T>(name: string): T {
+    if (!this.commands.has(name)) {
+      throw new Error(`Command '${name}' not found`)
+    }
+    return this.commands.get(name) as T
+  }
+
+  // Ähnlich für andere Kategorien...
+}
+```
+
+### Initialisierung
+
+```typescript
+class ServiceContainer {
+  build(entities: any): ServiceContainer {
+    // 1. Repositories (Data Access)
+    this.buildRepositories(entities)
+
+    // 2. Services (Domain Logic)
+    this.buildServices()
+
+    // 3. Validators (Business Rules)
+    this.buildValidators()
+
+    // 4. Strategies (Algorithms)
+    this.buildStrategies()
+
+    // 5. Factories (Object Creation)
+    this.buildFactories()
+
+    // 6. Commands (Business Operations)
+    this.buildCommands()
+
+    return this
+  }
+
+  private buildRepositories(entities: any): void {
+    this.repos.set('timeEntry', new TimeEntryRepository(entities))
+    this.repos.set('user', new UserRepository(entities))
+    this.repos.set('project', new ProjectRepository(entities))
+  }
+
+  private buildCommands(): void {
+    const repo = this.getRepository<TimeEntryRepository>('timeEntry')
+    const validator = this.getValidator<TimeEntryValidator>('timeEntry')
+    const service = this.getService<TimeCalculationService>('timeCalc')
+    const factory = this.getFactory<TimeEntryFactory>('timeEntry')
+
+    this.commands.set('createTimeEntry', new CreateTimeEntryCommand(repo, validator, service, factory))
+  }
+}
+```
+
+### Nutzung in CAP Service
+
+```typescript
+export default async function trackService(service: Service) {
+  const entities = service.entities
+
+  // Container initialisieren
+  const container = new ServiceContainer().build(entities)
+
+  // Commands aus Container holen
+  service.on('CREATE', 'TimeEntries', async (req) => {
+    const command = container.getCommand<CreateTimeEntryCommand>('createTimeEntry')
+    return await command.execute(req, req.data)
+  })
+
+  service.on('generateMonthly', async (req) => {
+    const command = container.getCommand<GenerateMonthlyCommand>('generateMonthly')
+    return await command.execute(req, req.data)
+  })
+}
+```
+
+## Vorteile
+
+### 1. Loose Coupling
+
+```typescript
+// Command kennt nur Interfaces, nicht Implementierungen
+export class CreateTimeEntryCommand {
+  constructor(
+    private repo: TimeEntryRepository, // Injected
+    private validator: TimeEntryValidator, // Injected
+    private service: TimeCalculationService // Injected
+  ) {}
+}
+
+// Einfacher Austausch von Implementierungen
+container.commands.set(
+  'createTimeEntry',
+  new CreateTimeEntryCommand(
+    new MockRepository(), // Test-Implementation
+    new MockValidator(), // Test-Implementation
+    new MockService() // Test-Implementation
+  )
+)
+```
+
+### 2. Einfaches Testing
+
+```typescript
+describe('CreateTimeEntryCommand', () => {
+  let command: CreateTimeEntryCommand
+  let mockRepo: jest.Mocked<TimeEntryRepository>
+
+  beforeEach(() => {
+    // Mocks erstellen
+    mockRepo = {
+      create: jest.fn(),
+      existsByUserAndDate: jest.fn().mockResolvedValue(false),
+    } as any
+
+    const mockValidator = { validateCreate: jest.fn() } as any
+    const mockService = { calculate: jest.fn() } as any
+    const mockFactory = { create: jest.fn() } as any
+
+    // Command mit Mocks instanziieren
+    command = new CreateTimeEntryCommand(mockRepo, mockValidator, mockService, mockFactory)
+  })
+
+  it('should create time entry', async () => {
+    await command.execute(mockTx, testData)
+    expect(mockRepo.create).toHaveBeenCalled()
+  })
+})
+```
+
+### 3. Single Point of Configuration
+
+```typescript
+// Alle Dependencies an einer Stelle
+class ServiceContainer {
+  build(entities: any): ServiceContainer {
+    // 1. Infrastruktur (SQLite vs. HANA)
+    const dbType = process.env.DB_TYPE || 'sqlite'
+    this.repos.set(
+      'timeEntry',
+      dbType === 'hana' ? new HanaTimeEntryRepository(entities) : new SqliteTimeEntryRepository(entities)
+    )
+
+    // 2. Feature Flags
+    const useAdvancedValidation = process.env.ADVANCED_VALIDATION === 'true'
+    this.validators.set(
+      'timeEntry',
+      useAdvancedValidation ? new AdvancedTimeEntryValidator() : new BasicTimeEntryValidator()
+    )
+
+    return this
+  }
+}
+```
+
+### 4. Explizite Dependencies
+
+```typescript
+// Alle Abhängigkeiten im Konstruktor sichtbar
+export class GenerateYearlyCommand {
+  constructor(
+    private repo: TimeEntryRepository, // Data Access
+    private userService: UserService, // Domain Logic
+    private holidayService: HolidayService, // External API
+    private strategy: YearlyGenerationStrategy, // Algorithm
+    private validator: GenerationValidator, // Validation
+    private factory: TimeEntryFactory // Object Creation
+  ) {}
+
+  // Klar: 6 Dependencies benötigt
+}
+```
+
+## Implementierung in CAPture Time
+
+### 6 Dependency-Kategorien
+
+```typescript
+class ServiceContainer {
+  // 1️⃣ Repositories (7) - Data Access Layer
+  private repos = new Map<string, any>()
+  // TimeEntry, User, Project, ActivityType, EntryType, Customizing
+
+  // 2️⃣ Services (7) - Domain Logic
+  private services = new Map<string, any>()
+  // TimeCalc, User, Holiday, Balance, Generation, Status
+
+  // 3️⃣ Validators (7) - Business Rules
+  private validators = new Map<string, any>()
+  // TimeEntry, Generation, Status, User, Project
+
+  // 4️⃣ Strategies (2) - Algorithms
+  private strategies = new Map<string, any>()
+  // MonthlyGeneration, YearlyGeneration
+
+  // 5️⃣ Commands (11) - Business Operations
+  private commands = new Map<string, any>()
+  // Create, Update, Delete, Generate*, GetBalance*
+
+  // 6️⃣ Factories (2) - Object Creation
+  private factories = new Map<string, any>()
+  // TimeEntry, Handler
+}
+```
+
+### Dependency Graph
+
+```
+┌─────────────────┐
+│   CAP Service   │
+└────────┬────────┘
+         │
+    ┌────▼────┐
+    │Container│
+    └────┬────┘
+         │
+    ┌────▼─────────┐
+    │  Commands    │ ─┐
+    └──────────────┘  │
+         │            │
+    ┌────▼─────────┐  │ Dependencies
+    │  Validators  │ ◄┘ injected via
+    └──────────────┘    Constructor
+         │
+    ┌────▼─────────┐
+    │   Services   │
+    └──────────────┘
+         │
+    ┌────▼─────────┐
+    │ Repositories │
+    └──────────────┘
+         │
+    ┌────▼─────────┐
+    │   Database   │
+    └──────────────┘
+```
+
+### Fluent API für Handler-Setup
+
+```typescript
+// HandlerSetup nutzt Container
+const setup = HandlerSetup.create(container, registry)
+  .withTimeEntryHandlers()
+  .withGenerationHandlers()
+  .withBalanceHandlers()
+  .withStatusHandlers()
+  .build()
+
+// Container wird an alle Handler weitergereicht
+class TimeEntryHandlers {
+  constructor(private container: ServiceContainer) {}
+
+  handleCreate(req: Request): Promise<TimeEntry> {
+    const command = this.container.getCommand<CreateTimeEntryCommand>('createTimeEntry')
+    return command.execute(req, req.data)
+  }
+}
+```
+
+## Best Practices
+
+### 1. Lazy Initialization
+
+```typescript
+class ServiceContainer {
+  private _customizingService?: CustomizingService
+
+  getService<T>(name: string): T {
+    if (name === 'customizing' && !this._customizingService) {
+      // Initialisiere nur bei Bedarf
+      this._customizingService = new CustomizingService(this.getRepository('customizing'))
+    }
+    return this._customizingService as T
+  }
+}
+```
+
+### 2. Typsichere Getter
+
+```typescript
+// ✅ Generics für Type Safety
+const repo = container.getRepository<TimeEntryRepository>('timeEntry');
+repo.findById(...); // ✅ TypeScript kennt alle Methoden
+
+// ❌ Ohne Generics
+const repo = container.getRepository('timeEntry');
+repo.findById(...); // ⚠️ `any` Type
+```
+
+### 3. Validierung beim Build
+
+```typescript
+class ServiceContainer {
+  build(entities: any): ServiceContainer {
+    this.buildRepositories(entities)
+    this.buildCommands()
+
+    // Validiere, dass alle Dependencies verfügbar sind
+    this.validate()
+
+    return this
+  }
+
+  private validate(): void {
+    const requiredRepos = ['timeEntry', 'user', 'project']
+    for (const name of requiredRepos) {
+      if (!this.repos.has(name)) {
+        throw new Error(`Required repository '${name}' not registered`)
+      }
+    }
+  }
+}
+```
+
+### 4. Scoped Instances
+
+```typescript
+// Pro Request eine neue Command-Instanz
+service.on('CREATE', 'TimeEntries', async (req) => {
+  // Factory Pattern für scoped Dependencies
+  const command = container.createCommand<CreateTimeEntryCommand>(
+    'createTimeEntry',
+    { tx: req } // Request-spezifische Daten
+  )
+
+  return await command.execute(req.data)
+})
+```
+
+## Alternativen
+
+### Option 1: Externe DI-Frameworks (InversifyJS, TSyringe)
+
+⚠️ Overhead, zusätzliche Lernkurve, mehr Dependencies
+
+### Option 2: Factory Functions
+
+⚠️ Weniger typsicher, unübersichtlich bei vielen Dependencies
+
+### Option 3: ServiceContainer (gewählt)
+
+✅ Lightweight, typsicher, CAP-optimiert
+
+## Trade-offs
+
+**Vorteile:**
+
+- ✅ Maximale Testbarkeit (Mocking einfach)
+- ✅ Loose Coupling (austauschbare Implementierungen)
+- ✅ Single Point of Configuration
+- ✅ Explizite Dependencies (keine Magie)
+- ✅ TypeScript-Integration
+
+**Nachteile:**
+
+- ⚠️ Initialer Setup-Aufwand
+- ⚠️ Container muss manuell gepflegt werden
+- ⚠️ Kein Auto-Wiring wie bei großen Frameworks
+
+## Wann ServiceContainer nutzen?
+
+**✅ Nutzen wenn:**
+
+- Komplexe Business-Logik mit vielen Dependencies
+- Unit-Tests wichtig sind
+- Clean Architecture gewünscht ist
+- Mehrere Layer (Commands, Services, Repos)
+
+**❌ Nicht nutzen wenn:**
+
+- Einfache CRUD-App ohne Business-Logik
+- Nur 1-2 Handler
+- Keine Tests geplant
+
+## Erweiterte Patterns
+
+### Decorator Pattern für Caching
+
+```typescript
+class CachedTimeEntryRepository implements TimeEntryRepository {
+  private cache = new Map<string, TimeEntry>()
+
+  constructor(private inner: TimeEntryRepository) {}
+
+  async findById(tx: Transaction, id: string): Promise<TimeEntry | null> {
+    if (this.cache.has(id)) {
+      return this.cache.get(id)!
+    }
+
+    const entry = await this.inner.findById(tx, id)
+    if (entry) {
+      this.cache.set(id, entry)
+    }
+    return entry
+  }
+}
+
+// Im Container
+container.repos.set('timeEntry', new CachedTimeEntryRepository(new TimeEntryRepository(entities)))
+```
+
+## Fazit
+
+Der **ServiceContainer** ist das Herzstück einer Clean Architecture in SAP CAP. Er ermöglicht:
+
+- **Testbare Business-Logik** durch Dependency Injection
+- **Lose Kopplung** zwischen Layern
+- **Explizite Dependencies** statt versteckter Abhängigkeiten
+- **Single Point of Configuration** für alle Services
+
+In Kombination mit [Command Pattern](/notes/command-pattern-cap) und [Repository Pattern](/notes/repository-pattern-cap) entsteht eine hochgradig wartbare Architektur.
+
+## Siehe auch
+
+- [Command Pattern](/notes/command-pattern-cap) für Business-Operationen
+- [Repository Pattern](/notes/repository-pattern-cap) für Datenzugriff
+- [ADR 0001: Clean Architecture](https://github.com/nimble-123/cap-fiori-timetracking/blob/main/docs/ADR/0001-clean-architecture-trackservice.md) im Original-Projekt
