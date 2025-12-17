@@ -1,8 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useInView } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface TypewriterEffectProps {
   segments: {
@@ -14,52 +14,59 @@ interface TypewriterEffectProps {
   speed?: number
 }
 
-export function TypewriterEffect({ segments, className, cursorClassName, speed = 0.03 }: TypewriterEffectProps) {
+export function TypewriterEffect({ segments, className, cursorClassName, speed = 50 }: TypewriterEffectProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true })
+  const [displayedText, setDisplayedText] = useState<Array<{ char: string; className?: string }>>([])
+  const [isComplete, setIsComplete] = useState(false)
 
-  const container = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: speed,
-      },
-    },
-  }
-
-  const child = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-  }
-
-  // Flatten segments into characters with their classes
-  const characters = segments.flatMap((segment) =>
-    segment.text.split('').map((char) => ({
-      char,
-      className: segment.className,
-    }))
+  // Flatten segments into characters with their classes - memoized to prevent recreation
+  const characters = useMemo(
+    () =>
+      segments.flatMap((segment) =>
+        segment.text.split('').map((char) => ({
+          char,
+          className: segment.className,
+        }))
+      ),
+    [segments]
   )
 
+  useEffect(() => {
+    if (!isInView || characters.length === 0) return
+
+    let currentIndex = 0
+    setDisplayedText([])
+    setIsComplete(false)
+
+    const timer = setInterval(() => {
+      if (currentIndex < characters.length) {
+        const nextChar = characters[currentIndex]
+        if (nextChar) {
+          setDisplayedText((prev) => [...prev, nextChar])
+        }
+        currentIndex++
+      } else {
+        setIsComplete(true)
+        clearInterval(timer)
+      }
+    }, speed)
+
+    return () => clearInterval(timer)
+  }, [isInView, speed, characters])
+
   return (
-    <motion.p
-      ref={ref}
-      className={cn('inline-block', className)}
-      variants={container}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-    >
-      {characters.map((item, index) => (
-        <motion.span key={index} variants={child} className={item.className}>
-          {item.char}
-        </motion.span>
+    <p ref={ref} className={cn('inline-block', className)}>
+      {displayedText.filter(Boolean).map((item, index) => (
+        <span key={index} className={item?.className}>
+          {item?.char}
+        </span>
       ))}
-      <motion.span
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-        className={cn('bg-primary ml-1 inline-block h-[1em] w-[2px] align-middle', cursorClassName)}
-      />
-    </motion.p>
+      {!isComplete && (
+        <span
+          className={cn('bg-primary ml-[1px] inline-block h-[1em] w-[2px] animate-pulse align-middle', cursorClassName)}
+        />
+      )}
+    </p>
   )
 }
