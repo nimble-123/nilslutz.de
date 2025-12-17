@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { AvailabilityBadge } from '@/components/ui/availability-badge'
 import { profile } from '@/content/profile'
 import { Mail, Linkedin, Github } from 'lucide-react'
 
@@ -16,9 +17,7 @@ export default function ContactPage() {
 
           <div className="glass-card rounded-xl p-8 text-center">
             <h2 className="mb-4 text-lg font-semibold">Current Availability</h2>
-            <div className="inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
-              Open for Inhouse & Consulting (BTP / Architecture)
-            </div>
+            <AvailabilityBadge />
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
