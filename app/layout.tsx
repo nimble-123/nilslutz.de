@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
+import { ParticleBackground } from '@/components/ui/particle-background'
 import { clsx } from 'clsx'
 
 import { Analytics } from '@vercel/analytics/next'
@@ -32,7 +33,9 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="flex min-h-screen flex-col">{children}</div>
+          {/* Particle Background - Global */}
+          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
+          <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
