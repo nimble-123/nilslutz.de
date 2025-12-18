@@ -1,0 +1,149 @@
+---
+title: 'Blockchain Food Chain Traceability'
+summary: 'Hyperledger Composer-basiertes Blockchain-Netzwerk zur Rückverfolgbarkeit in der Lebensmittellieferkette mit Smart Contracts und verteiltem Ledger.'
+tags: ['Blockchain', 'Hyperledger', 'Node.js', 'DLT', 'Supply Chain']
+period: '2018-2020'
+role: 'Solution Architect & Developer'
+stack: ['Hyperledger Composer', 'Node.js', 'JavaScript', 'Cucumber', 'Distributed Ledger']
+featured: true
+metrics: ['Multi-Party Network', 'End-to-End Traceability', 'Immutable Records']
+---
+
+# Context
+
+In der Lebensmittelindustrie ist die Rückverfolgbarkeit von Produkten entscheidend für Qualitätssicherung, Compliance und Verbraucherschutz. Traditionelle zentralisierte Systeme haben Schwächen bei der Transparenz zwischen verschiedenen Parteien der Lieferkette.
+
+# Solution Architecture
+
+Ein **Hyperledger Composer Business Network** wurde entwickelt, um eine transparente und unveränderliche Nachverfolgung von Lebensmitteln über die gesamte Lieferkette zu ermöglichen.
+
+## Technische Highlights
+
+- **Hyperledger Fabric**: Als Distributed Ledger Technologie (DLT) für das Blockchain-Netzwerk
+- **Smart Contracts**: Automatisierte Validierung und Transaktionslogik
+- **Multi-Party Network**: Verschiedene Stakeholder (Produzenten, Händler, Transporteure, Einzelhändler)
+- **Cucumber Tests**: Behavior-Driven Development für Business Network Definition
+
+## Architecture Pattern
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  Produzent  │───▶│ Transporteur│───▶│ Einzelhändler│
+└─────────────┘    └─────────────┘    └─────────────┘
+       │                  │                   │
+       └──────────────────┴───────────────────┘
+                         │
+                   ┌─────▼──────┐
+                   │ Blockchain │
+                   │   Ledger   │
+                   └────────────┘
+```
+
+## Business Network Definition
+
+- **Assets**: FoodItem, Shipment, Location
+- **Participants**: Producer, Shipper, Retailer, Regulator
+- **Transactions**: CreateFoodItem, TransferShipment, UpdateLocation
+- **Access Control**: Granulare Berechtigungen für verschiedene Netzwerk-Teilnehmer
+
+# Technical Implementation
+
+## Smart Contract Beispiel
+
+Die Transaktionslogik wurde als Smart Contracts modelliert:
+
+```javascript
+/**
+ * Transfer a shipment to a new holder
+ * @param {org.foodchain.TransferShipment} tx
+ * @transaction
+ */
+async function transferShipment(tx) {
+  const shipment = tx.shipment
+
+  // Validierung
+  if (shipment.status === 'DELIVERED') {
+    throw new Error('Cannot transfer delivered shipment')
+  }
+
+  // State Update
+  shipment.holder = tx.newHolder
+  shipment.location = tx.newLocation
+  shipment.status = tx.status
+
+  // Event Emission
+  const event = getFactory().newEvent('org.foodchain', 'ShipmentTransferred')
+  event.shipment = shipment
+  event.oldHolder = shipment.holder
+  event.newHolder = tx.newHolder
+  emit(event)
+
+  // Persist to Ledger
+  const registry = await getAssetRegistry('org.foodchain.Shipment')
+  await registry.update(shipment)
+}
+```
+
+## Testing mit Cucumber
+
+```gherkin
+Feature: Food Traceability
+  Scenario: Producer creates new food item
+    Given a producer "Farm A"
+    When the producer creates a food item "Organic Tomatoes"
+    Then the food item should be recorded on the blockchain
+    And the origin should be traceable to "Farm A"
+
+  Scenario: Transfer shipment through supply chain
+    Given a shipment from "Farm A" to "Retailer B"
+    When the shipment is transferred to "Transporter X"
+    Then the blockchain should reflect the new holder
+    And all parties should see the updated status
+```
+
+# Challenges & Solutions
+
+## Challenge: Datenschutz vs. Transparenz
+
+**Lösung**: Private Data Collections für sensible Geschäftsdaten, öffentliche Hashes für Verifikation
+
+## Challenge: Performance bei vielen Transaktionen
+
+**Lösung**: Channel-basierte Segmentierung des Netzwerks, Optimierung der Query-Performance
+
+## Challenge: Integration mit Legacy-Systemen
+
+**Lösung**: REST API Gateway für externe Systeme, Event-basierte Integration
+
+# Lessons Learned
+
+## Blockchain ist kein Silver Bullet
+
+Blockchain eignet sich perfekt für Multi-Party-Szenarien mit Vertrauensproblemen, aber nicht für jeden Use Case. Die Analyse, ob ein verteiltes Ledger wirklich benötigt wird, ist essentiell.
+
+## Governance ist kritisch
+
+Technologie allein reicht nicht - die Governance des Netzwerks (Onboarding, Zugriffsrechte, Consensus-Mechanismus) ist ebenso wichtig.
+
+## Smart Contracts = Smart Testing
+
+Umfangreiche Tests sind unerlässlich, da Smart Contracts nach Deployment schwer zu ändern sind.
+
+# Outcome
+
+- **Vollständige Rückverfolgbarkeit**: Jedes Produkt kann vom Endverbraucher bis zum Ursprung zurückverfolgt werden
+- **Manipulationssicherheit**: Unveränderliche Blockchain-Records verhindern nachträgliche Änderungen
+- **Vertrauen**: Transparenz zwischen allen Parteien ohne zentrale Autorität
+- **Compliance**: Automatisierte Nachweise für Regulierungsbehörden
+
+## Technologies
+
+Hyperledger Composer · Hyperledger Fabric · Node.js · JavaScript · Cucumber · Docker · Distributed Ledger Technology
+
+## Links
+
+[GitHub Repository](https://github.com/nimble-123/hlc-food-chain-traceability)
+
+---
+
+_Diese Case Study demonstriert die Anwendung von Blockchain-Technologie für reale Business-Probleme und zeigt die Wichtigkeit von durchdachter Architektur und Governance in Multi-Party-Netzwerken._
