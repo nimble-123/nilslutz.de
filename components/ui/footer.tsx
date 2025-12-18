@@ -13,7 +13,7 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col space-y-4 md:items-end">
-            <div className="text-muted-foreground flex gap-6 text-sm font-medium">
+            <div className="text-muted-foreground flex flex-wrap gap-4 text-sm font-medium md:gap-6">
               <a
                 href={profile.socials.github}
                 target="_blank"
@@ -40,6 +40,14 @@ export function Footer() {
               </a>
               <a href={`mailto:${profile.socials.email}`} className="hover:text-primary transition-colors">
                 Email
+              </a>
+            </div>
+            <div className="text-muted-foreground flex flex-wrap gap-4 text-xs md:gap-6">
+              <a href="/impressum" className="hover:text-primary transition-colors">
+                Impressum
+              </a>
+              <a href="/datenschutz" className="hover:text-primary transition-colors">
+                Datenschutz
               </a>
             </div>
             <p className="text-muted-foreground text-xs">
