@@ -1,0 +1,273 @@
+---
+title: 'UI5 Boilerplate Generator'
+summary: 'Yeoman-basierter Generator für schnelles Scaffolding von SAP UI5-Projekten mit Best Practices, TypeScript-Support und modernem Tooling.'
+tags: ['UI5', 'Fiori', 'Yeoman', 'JavaScript', 'DevEx']
+period: '2020-2023'
+role: 'Creator & Maintainer'
+stack: ['Yeoman', 'SAPUI5', 'JavaScript', 'Node.js', 'npm']
+featured: false
+metrics: ['7 GitHub Stars', 'Open Source', 'Community Tool']
+---
+
+# Context
+
+Die Initialisierung neuer SAP UI5-Projekte war oft zeitaufwendig und inkonsistent. Entwickler mussten wiederholt die gleiche Projektstruktur aufsetzen, Build-Tools konfigurieren und Best Practices manuell implementieren.
+
+# Solution
+
+Ein **Yeoman Generator** wurde entwickelt, um UI5-Projekte mit einem einzigen Befehl zu scaffolden - inklusive aller notwendigen Konfigurationsdateien, Build-Scripts und Best-Practice-Strukturen.
+
+## Features
+
+### 🚀 Schnelles Project Setup
+
+```bash
+npm install -g generator-ui5-boilerplate
+yo ui5-boilerplate
+```
+
+### 📦 Enthaltene Features
+
+- **Moderne Projektstruktur**: Logische Trennung von Views, Controllers, Models
+- **Build-Tooling**: Grunt/Gulp Integration für Minification, Bundling
+- **Development Server**: Live-Reload für schnelle Entwicklung
+- **Linting**: ESLint-Konfiguration für Code-Qualität
+- **Testing**: QUnit & OPA5 Test-Setup
+- **Deployment**: Build-Scripts für SAP BTP/Cloud Foundry
+
+## Architecture
+
+```
+my-ui5-app/
+├── webapp/
+│   ├── controller/
+│   ├── view/
+│   ├── model/
+│   ├── i18n/
+│   ├── css/
+│   └── manifest.json
+├── test/
+│   ├── unit/
+│   └── integration/
+├── Gruntfile.js
+├── package.json
+└── ui5.yaml
+```
+
+# Technical Implementation
+
+## Generator Templates
+
+Der Generator nutzt EJS-Templates für flexible Codegenerierung:
+
+```javascript
+// generator/app/index.js
+module.exports = class extends Generator {
+  async prompting() {
+    this.answers = await this.prompt([
+      {
+        type: 'input',
+        name: 'appName',
+        message: 'Your application name',
+        default: this.appname,
+      },
+      {
+        type: 'list',
+        name: 'ui5Version',
+        message: 'UI5 Version',
+        choices: ['1.108', '1.112', '1.120'],
+      },
+      {
+        type: 'confirm',
+        name: 'includeTypeScript',
+        message: 'Include TypeScript support?',
+        default: false,
+      },
+    ])
+  }
+
+  writing() {
+    this.fs.copyTpl(this.templatePath('webapp/**'), this.destinationPath('webapp'), {
+      appName: this.answers.appName,
+      namespace: this._createNamespace(this.answers.appName),
+    })
+
+    if (this.answers.includeTypeScript) {
+      this.fs.copy(this.templatePath('tsconfig.json'), this.destinationPath('tsconfig.json'))
+    }
+  }
+
+  install() {
+    this.npmInstall()
+  }
+}
+```
+
+## Generated manifest.json
+
+```json
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "<%= namespace %>",
+    "type": "application",
+    "title": "{{appTitle}}",
+    "applicationVersion": {
+      "version": "1.0.0"
+    }
+  },
+  "sap.ui5": {
+    "dependencies": {
+      "minUI5Version": "<%= ui5Version %>",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "type": "View",
+        "viewType": "XML"
+      },
+      "routes": []
+    }
+  }
+}
+```
+
+## Build Configuration
+
+```javascript
+// Gruntfile.js
+module.exports = function (grunt) {
+  grunt.initConfig({
+    openui5_preload: {
+      component: {
+        options: {
+          resources: 'webapp',
+          dest: 'dist',
+        },
+        components: true,
+      },
+    },
+    uglify: {
+      options: {
+        mangle: false,
+      },
+      dist: {
+        files: [
+          {
+            expand: true,
+            cwd: 'dist',
+            src: '**/*.js',
+            dest: 'dist',
+          },
+        ],
+      },
+    },
+  })
+
+  grunt.loadNpmTasks('grunt-openui5')
+  grunt.loadNpmTasks('grunt-contrib-uglify')
+
+  grunt.registerTask('build', ['openui5_preload', 'uglify'])
+}
+```
+
+# Community Impact
+
+## GitHub Statistics
+
+- **7 Stars**: Nutzung durch die Community
+- **MIT License**: Frei verfügbar für kommerzielle und private Projekte
+- **Issues & PRs**: Aktive Community-Beiträge
+
+## Use Cases
+
+- **Onboarding**: Neue Entwickler können schnell produktiv werden
+- **Proof of Concepts**: Schnelles Setup für Prototypen
+- **Training**: Konsistente Basis für Schulungen
+
+# Best Practices Included
+
+## 1. Manifest First
+
+Alle App-Konfiguration in `manifest.json` statt verstreut im Code
+
+## 2. Component-based Architecture
+
+```javascript
+sap.ui.define(['sap/ui/core/UIComponent'], function (UIComponent) {
+  return UIComponent.extend('my.app.Component', {
+    metadata: {
+      manifest: 'json',
+    },
+    init: function () {
+      UIComponent.prototype.init.apply(this, arguments)
+      this.getRouter().initialize()
+    },
+  })
+})
+```
+
+## 3. Model Separation
+
+- **i18n Model**: Internationalisierung
+- **JSON Model**: Client-side data
+- **OData V2/V4 Model**: Backend-Integration
+
+## 4. Routing Configuration
+
+```javascript
+"routes": [
+  {
+    "pattern": "",
+    "name": "main",
+    "target": "main"
+  },
+  {
+    "pattern": "detail/{objectId}",
+    "name": "detail",
+    "target": "detail"
+  }
+]
+```
+
+# Lessons Learned
+
+## Developer Experience ist wichtig
+
+Zeit, die in gutes Tooling investiert wird, zahlt sich durch schnellere Entwicklung und weniger Fehler aus.
+
+## Templates müssen aktualisiert werden
+
+UI5 entwickelt sich weiter - Generator-Templates müssen mit neuen Versionen Schritt halten.
+
+## Flexibilität vs. Einfachheit
+
+Balance zwischen konfigurierbaren Optionen und "out-of-the-box" Funktionalität.
+
+# Future Enhancements
+
+- ✅ TypeScript Support
+- 🔄 UI5 Tooling v3 Integration
+- 🔄 Fiori Elements Template
+- 📱 Mobile-First Templates
+- 🧪 Modern Testing Frameworks (Jest, Cypress)
+
+# Outcome
+
+Der Generator reduziert die Setup-Zeit für neue UI5-Projekte von Stunden auf Minuten und stellt sicher, dass alle Projekte mit Best Practices starten.
+
+## Technologies
+
+Yeoman · SAPUI5 · JavaScript · Node.js · Grunt · npm
+
+## Links
+
+[GitHub Repository](https://github.com/nimble-123/generator-ui5-boilerplate) · 7⭐
+
+---
+
+_Dieses Open-Source-Projekt zeigt, wie Developer Experience durch gutes Tooling verbessert werden kann und wie Yeoman-Generatoren für Enterprise-Frameworks eingesetzt werden._
