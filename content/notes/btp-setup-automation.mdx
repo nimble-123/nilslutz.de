@@ -1,0 +1,494 @@
+---
+title: 'BTP Setup Automation mit Terraform'
+summary: 'Automatisierung und Infrastructure-as-Code für SAP Business Technology Platform mit Terraform, CLI-Tools und Best Practices.'
+tags: ['BTP', 'Terraform', 'IaC', 'Automation', 'DevOps']
+date: '2025-12-18'
+---
+
+# BTP Setup Automation mit Terraform
+
+Die manuelle Konfiguration von SAP BTP-Accounts ist zeitaufwendig, fehleranfällig und nicht reproduzierbar. **Infrastructure as Code (IaC)** löst diese Probleme durch deklarative Konfiguration.
+
+## Das Problem
+
+Typische manuelle BTP-Setups erfordern:
+
+- 📋 Subaccounts erstellen
+- 🔐 Entitlements zuweisen
+- 👥 Rollen-Collections konfigurieren
+- 🔗 Service Instances & Bindings anlegen
+- 🌐 Destinations definieren
+- ✅ Subscriptions aktivieren
+
+Dies manuell zu tun bedeutet:
+
+- ⏱️ Stunden bis Tage Aufwand
+- 🐛 Inkonsistenzen zwischen Environments
+- 📝 Keine Nachvollziehbarkeit (Audit Trail)
+- 🔄 Schwierige Reproduzierbarkeit
+
+## Die Lösung: BTP Terraform Provider
+
+SAP bietet einen offiziellen **Terraform Provider** für BTP, der die gesamte Platform-Konfiguration als Code ermöglicht.
+
+### Installation
+
+```hcl
+# versions.tf
+terraform {
+  required_providers {
+    btp = {
+      source  = "SAP/btp"
+      version = "~> 1.0"
+    }
+  }
+}
+
+provider "btp" {
+  globalaccount = var.globalaccount
+  username      = var.username
+  password      = var.password
+}
+```
+
+## Grundlegendes Setup
+
+### Subaccount erstellen
+
+```hcl
+# subaccount.tf
+resource "btp_subaccount" "dev" {
+  name        = "Development Environment"
+  region      = "eu10"
+  subdomain   = "my-dev-subaccount"
+  description = "Development environment for CAP applications"
+
+  labels = {
+    environment = ["dev"]
+    team        = ["backend"]
+  }
+}
+```
+
+### Entitlements zuweisen
+
+```hcl
+# entitlements.tf
+resource "btp_subaccount_entitlement" "cap_tools" {
+  subaccount_id = btp_subaccount.dev.id
+  service_name  = "sapappstudio"
+  plan_name     = "standard-edition"
+  amount        = 1
+}
+
+resource "btp_subaccount_entitlement" "hana_cloud" {
+  subaccount_id = btp_subaccount.dev.id
+  service_name  = "hana-cloud"
+  plan_name     = "hana"
+  amount        = 1
+}
+
+resource "btp_subaccount_entitlement" "xsuaa" {
+  subaccount_id = btp_subaccount.dev.id
+  service_name  = "xsuaa"
+  plan_name     = "application"
+}
+```
+
+### Service Instances
+
+```hcl
+# services.tf
+resource "btp_subaccount_service_instance" "xsuaa_instance" {
+  subaccount_id  = btp_subaccount.dev.id
+  name           = "my-xsuaa"
+  service_plan   = "application"
+  service_name   = "xsuaa"
+
+  parameters = jsonencode({
+    xsappname = "my-cap-app"
+    tenant-mode = "dedicated"
+    scopes = [
+      {
+        name = "$XSAPPNAME.Admin"
+        description = "Admin scope"
+      }
+    ]
+    role-templates = [
+      {
+        name = "Admin"
+        description = "Administrator"
+        scope-references = ["$XSAPPNAME.Admin"]
+      }
+    ]
+  })
+}
+
+resource "btp_subaccount_service_binding" "xsuaa_binding" {
+  subaccount_id = btp_subaccount.dev.id
+  service_instance_id = btp_subaccount_service_instance.xsuaa_instance.id
+  name = "xsuaa-binding"
+}
+```
+
+## Fortgeschrittene Patterns
+
+### Environment-spezifische Konfiguration
+
+```hcl
+# environments/dev/terraform.tfvars
+globalaccount = "my-global-account-id"
+region        = "eu10"
+environment   = "dev"
+cap_users     = ["developer1@company.com", "developer2@company.com"]
+
+# environments/prod/terraform.tfvars
+globalaccount = "my-global-account-id"
+region        = "eu10"
+environment   = "prod"
+cap_users     = ["admin@company.com"]
+```
+
+### Modulare Struktur
+
+```hcl
+# modules/cap-setup/main.tf
+variable "subaccount_id" {
+  type = string
+}
+
+variable "app_name" {
+  type = string
+}
+
+resource "btp_subaccount_service_instance" "cap_services" {
+  for_each = toset(["xsuaa", "destination", "connectivity"])
+
+  subaccount_id = var.subaccount_id
+  name          = "${var.app_name}-${each.key}"
+  service_name  = each.key
+  service_plan  = each.key == "xsuaa" ? "application" : "lite"
+}
+
+output "service_keys" {
+  value = {
+    for k, v in btp_subaccount_service_instance.cap_services :
+    k => v.id
+  }
+}
+```
+
+Verwendung:
+
+```hcl
+# main.tf
+module "my_cap_app" {
+  source = "./modules/cap-setup"
+
+  subaccount_id = btp_subaccount.dev.id
+  app_name      = "timetracking"
+}
+```
+
+### Destinations mit Terraform
+
+```hcl
+resource "btp_subaccount_destination" "s4hana_backend" {
+  subaccount_id = btp_subaccount.dev.id
+  name          = "S4HANA_BACKEND"
+
+  type          = "HTTP"
+  url           = "https://my-s4hana.s4hana.ondemand.com"
+  authentication = "OAuth2SAMLBearerAssertion"
+
+  properties = {
+    "audience"        = "https://my-s4hana.s4hana.ondemand.com"
+    "authnContextClassRef" = "urn:oasis:names:tc:SAML:2.0:ac:classes:PreviousSession"
+    "clientKey"       = var.s4hana_client_id
+    "tokenServiceURL" = "https://my-s4hana.authentication.eu10.hana.ondemand.com/oauth/token"
+    "ProxyType"       = "OnPremise"
+  }
+}
+```
+
+## Role Collections & User Assignment
+
+```hcl
+# roles.tf
+resource "btp_subaccount_role_collection" "admin" {
+  subaccount_id = btp_subaccount.dev.id
+  name          = "CAP_Admin"
+  description   = "CAP Application Administrator"
+
+  roles = [
+    {
+      name              = "Admin"
+      role_template_app = btp_subaccount_service_instance.xsuaa_instance.name
+      role_template     = "Admin"
+    }
+  ]
+}
+
+resource "btp_subaccount_role_collection_assignment" "admin_users" {
+  for_each = toset(var.admin_users)
+
+  subaccount_id        = btp_subaccount.dev.id
+  role_collection_name = btp_subaccount_role_collection.admin.name
+  user_name            = each.value
+}
+```
+
+## State Management
+
+### Remote State mit Cloud Storage
+
+```hcl
+# backend.tf
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state"
+    key    = "btp/dev/terraform.tfstate"
+    region = "eu-central-1"
+  }
+}
+```
+
+Oder mit BTP Object Store:
+
+```hcl
+terraform {
+  backend "http" {
+    address = "https://objectstore.cf.eu10.hana.ondemand.com/terraform-state/dev.tfstate"
+    lock_address = "https://objectstore.cf.eu10.hana.ondemand.com/terraform-state/dev.tfstate.lock"
+    unlock_address = "https://objectstore.cf.eu10.hana.ondemand.com/terraform-state/dev.tfstate.lock"
+  }
+}
+```
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/btp-deploy.yml
+name: BTP Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+        env:
+          BTP_USERNAME: ${{ secrets.BTP_USERNAME }}
+          BTP_PASSWORD: ${{ secrets.BTP_PASSWORD }}
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./terraform
+        run: terraform apply -auto-approve tfplan
+```
+
+## BTP CLI Integration
+
+Für Aufgaben, die Terraform (noch) nicht unterstützt:
+
+```bash
+#!/bin/bash
+# scripts/setup-additional.sh
+
+# Login
+btp login --user "$BTP_USERNAME" --password "$BTP_PASSWORD"
+
+# Trust Configuration für Custom IDP
+btp create security/trust sap-dev-idp \
+  --subaccount "$SUBACCOUNT_ID" \
+  --name "Corporate IdP" \
+  --origin "corporate-idp" \
+  --domain "company.com"
+
+# Cloud Foundry Environment Instance
+btp create accounts/environment-instance \
+  --subaccount "$SUBACCOUNT_ID" \
+  --environment cloudfoundry \
+  --service cloudfoundry \
+  --plan standard \
+  --parameters '{
+    "instance_name": "cf-eu10"
+  }'
+```
+
+## Monitoring & Drift Detection
+
+```hcl
+# drift-detection.tf
+resource "null_resource" "drift_detection" {
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      terraform plan -detailed-exitcode || \
+        (echo "⚠️ Configuration drift detected!" && \
+         curl -X POST "$SLACK_WEBHOOK_URL" \
+           -H 'Content-Type: application/json' \
+           -d '{"text":"BTP Configuration Drift Detected!"}')
+    EOT
+  }
+}
+```
+
+## Best Practices
+
+### 1. Secrets Management
+
+```hcl
+# Nutze Vault oder Cloud Secret Manager
+data "vault_generic_secret" "btp_credentials" {
+  path = "secret/btp/credentials"
+}
+
+provider "btp" {
+  globalaccount = var.globalaccount
+  username      = data.vault_generic_secret.btp_credentials.data["username"]
+  password      = data.vault_generic_secret.btp_credentials.data["password"]
+}
+```
+
+### 2. Naming Conventions
+
+```hcl
+locals {
+  naming_prefix = "${var.project}-${var.environment}"
+
+  resource_names = {
+    subaccount = "${local.naming_prefix}-subaccount"
+    xsuaa      = "${local.naming_prefix}-xsuaa"
+    hana       = "${local.naming_prefix}-hana"
+  }
+}
+```
+
+### 3. Tagging Strategy
+
+```hcl
+locals {
+  common_labels = {
+    managed-by  = ["terraform"]
+    project     = [var.project_name]
+    environment = [var.environment]
+    cost-center = [var.cost_center]
+    owner       = [var.team_email]
+  }
+}
+
+resource "btp_subaccount" "main" {
+  name   = local.resource_names.subaccount
+  labels = local.common_labels
+  # ...
+}
+```
+
+### 4. Documentation as Code
+
+```hcl
+# outputs.tf
+output "subaccount_url" {
+  value       = btp_subaccount.dev.subdomain
+  description = "URL to access the BTP subaccount"
+}
+
+output "service_endpoints" {
+  value = {
+    for k, v in btp_subaccount_service_instance.cap_services :
+    k => {
+      name = v.name
+      plan = v.service_plan
+    }
+  }
+  description = "Overview of created service instances"
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Entitlement nicht verfügbar**
+
+```bash
+# Prüfe verfügbare Entitlements
+btp list accounts/entitlement \
+  --subaccount "$SUBACCOUNT_ID"
+```
+
+**2. Service Plan nicht gefunden**
+
+```bash
+# Liste alle verfügbaren Service Plans
+btp list services/plan \
+  --subaccount "$SUBACCOUNT_ID" \
+  --offering "xsuaa"
+```
+
+**3. Terraform State Lock**
+
+```bash
+# Force unlock (nur wenn sicher!)
+terraform force-unlock <LOCK_ID>
+```
+
+## Migration von manuell zu Terraform
+
+```bash
+#!/bin/bash
+# scripts/import-existing.sh
+
+# Import existing subaccount
+terraform import btp_subaccount.dev <subaccount-id>
+
+# Import existing service instance
+terraform import btp_subaccount_service_instance.xsuaa_instance \
+  <subaccount-id>/<service-instance-id>
+```
+
+## Zusammenfassung
+
+Infrastructure as Code für BTP bietet:
+
+- ✅ **Reproduzierbarkeit**: Identische Environments on-demand
+- ✅ **Versionierung**: Git-basierte Historie aller Änderungen
+- ✅ **Collaboration**: Review-Prozess über Pull Requests
+- ✅ **Automation**: CI/CD-Integration für automatische Deployments
+- ✅ **Documentation**: Code ist Dokumentation
+- ✅ **Disaster Recovery**: Schnelle Wiederherstellung
+
+## Weiterführende Resources
+
+- [SAP BTP Terraform Provider](https://registry.terraform.io/providers/SAP/btp/latest/docs)
+- [BTP Setup Automator](https://github.com/SAP-samples/btp-setup-automator)
+- [BTP CLI Documentation](https://help.sap.com/docs/btp/btp-cli/intro)
+
+---
+
+_Basierend auf Erfahrungen mit: [btp-setup-automator Fork](https://github.com/nimble-123/btp-setup-automator)_

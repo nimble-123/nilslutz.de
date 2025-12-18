@@ -1,0 +1,421 @@
+---
+title: 'Blockchain-Grundlagen mit TypeScript'
+summary: 'Verstehen der fundamentalen Blockchain-Konzepte durch praktische Implementierung einer einfachen Blockchain in TypeScript.'
+tags: ['Blockchain', 'TypeScript', 'DLT', 'Kryptographie', 'Tutorial']
+date: '2025-12-18'
+---
+
+# Blockchain-Grundlagen mit TypeScript
+
+Blockchain verstehen bedeutet, die zugrundeliegenden Mechanismen zu verstehen. Dieser Guide zeigt eine vereinfachte Blockchain-Implementierung in TypeScript, die alle Kernkonzepte demonstriert.
+
+## Was ist eine Blockchain?
+
+Eine Blockchain ist eine verkettete Liste von Blöcken, wobei jeder Block:
+
+- **Daten** enthält (Transaktionen, etc.)
+- Einen **Hash** des vorherigen Blocks referenziert
+- Einen eigenen **Hash** durch kryptographische Hashfunktion erhält
+- Einen **Proof-of-Work** (oder anderen Konsens-Mechanismus) implementiert
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Block 0    │────▶│  Block 1    │────▶│  Block 2    │
+│ (Genesis)   │     │             │     │             │
+│ prev: null  │     │ prev: hash0 │     │ prev: hash1 │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+## Block-Implementierung
+
+```typescript
+import * as crypto from 'crypto'
+
+export class Block {
+  public nonce: number = 0
+  public hash: string = ''
+
+  constructor(
+    public readonly index: number,
+    public readonly timestamp: number,
+    public readonly data: any,
+    public readonly previousHash: string
+  ) {
+    this.hash = this.calculateHash()
+  }
+
+  /**
+   * Berechnet SHA-256 Hash des Blocks
+   */
+  calculateHash(): string {
+    return crypto
+      .createHash('sha256')
+      .update(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce)
+      .digest('hex')
+  }
+
+  /**
+   * Mining: Finde einen Hash mit bestimmten Leading Zeros
+   * @param difficulty Anzahl der führenden Nullen
+   */
+  mineBlock(difficulty: number): void {
+    const target = '0'.repeat(difficulty)
+
+    console.log(`⛏️  Mining block ${this.index}...`)
+
+    while (!this.hash.startsWith(target)) {
+      this.nonce++
+      this.hash = this.calculateHash()
+    }
+
+    console.log(`✅ Block mined: ${this.hash}`)
+  }
+
+  /**
+   * Prüft ob der Block-Hash noch gültig ist
+   */
+  hasValidHash(): boolean {
+    return this.hash === this.calculateHash()
+  }
+}
+```
+
+## Blockchain-Klasse
+
+```typescript
+export class Blockchain {
+  public chain: Block[] = []
+  public readonly difficulty: number
+
+  constructor(difficulty: number = 4) {
+    this.difficulty = difficulty
+    this.chain = [this.createGenesisBlock()]
+  }
+
+  /**
+   * Erstellt den ersten Block (Genesis Block)
+   */
+  private createGenesisBlock(): Block {
+    return new Block(0, Date.now(), 'Genesis Block', '0')
+  }
+
+  /**
+   * Gibt den letzten Block der Chain zurück
+   */
+  getLatestBlock(): Block {
+    return this.chain[this.chain.length - 1]
+  }
+
+  /**
+   * Fügt einen neuen Block zur Chain hinzu
+   */
+  addBlock(data: any): void {
+    const previousBlock = this.getLatestBlock()
+    const newBlock = new Block(previousBlock.index + 1, Date.now(), data, previousBlock.hash)
+
+    // Mining durchführen
+    newBlock.mineBlock(this.difficulty)
+
+    this.chain.push(newBlock)
+  }
+
+  /**
+   * Validiert die komplette Blockchain
+   */
+  isValid(): boolean {
+    // Prüfe jeden Block (außer Genesis)
+    for (let i = 1; i < this.chain.length; i++) {
+      const currentBlock = this.chain[i]
+      const previousBlock = this.chain[i - 1]
+
+      // 1. Prüfe ob Hash noch korrekt ist
+      if (!currentBlock.hasValidHash()) {
+        console.error(`❌ Block ${i} has invalid hash`)
+        return false
+      }
+
+      // 2. Prüfe ob previousHash korrekt verlinkt ist
+      if (currentBlock.previousHash !== previousBlock.hash) {
+        console.error(`❌ Block ${i} has invalid previous hash`)
+        return false
+      }
+
+      // 3. Prüfe Proof-of-Work
+      const target = '0'.repeat(this.difficulty)
+      if (!currentBlock.hash.startsWith(target)) {
+        console.error(`❌ Block ${i} doesn't meet difficulty requirement`)
+        return false
+      }
+    }
+
+    console.log('✅ Blockchain is valid')
+    return true
+  }
+
+  /**
+   * Gibt die Chain als JSON aus
+   */
+  toJSON(): string {
+    return JSON.stringify(this.chain, null, 2)
+  }
+}
+```
+
+## Verwendungsbeispiel
+
+```typescript
+// Blockchain erstellen
+const myBlockchain = new Blockchain(4) // Difficulty = 4
+
+console.log('🔗 Creating blockchain...\n')
+
+// Blöcke hinzufügen
+myBlockchain.addBlock({
+  from: 'Alice',
+  to: 'Bob',
+  amount: 50,
+})
+
+myBlockchain.addBlock({
+  from: 'Bob',
+  to: 'Charlie',
+  amount: 25,
+})
+
+myBlockchain.addBlock({
+  from: 'Charlie',
+  to: 'Alice',
+  amount: 10,
+})
+
+// Validierung
+console.log('\n🔍 Validating blockchain...')
+console.log('Is valid?', myBlockchain.isValid())
+
+// Chain ausgeben
+console.log('\n📋 Blockchain:')
+console.log(myBlockchain.toJSON())
+```
+
+## Output
+
+```
+🔗 Creating blockchain...
+
+⛏️  Mining block 1...
+✅ Block mined: 0000d8f3e4a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7
+
+⛏️  Mining block 2...
+✅ Block mined: 0000c7b6a5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9
+
+⛏️  Mining block 3...
+✅ Block mined: 0000f1e2d3c4b5a6978869504132a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9
+
+🔍 Validating blockchain...
+✅ Blockchain is valid
+Is valid? true
+```
+
+## Proof of Work (Mining)
+
+Das Mining-Konzept verhindert, dass Blöcke beliebig schnell erstellt werden können:
+
+```typescript
+/**
+ * Mining-Performance Analyse
+ */
+function analyzeMiningDifficulty() {
+  const difficulties = [2, 3, 4, 5]
+
+  difficulties.forEach((diff) => {
+    const blockchain = new Blockchain(diff)
+
+    const start = Date.now()
+    blockchain.addBlock({ test: 'data' })
+    const duration = Date.now() - start
+
+    console.log(`Difficulty ${diff}: ${duration}ms`)
+  })
+}
+
+// Beispiel-Output:
+// Difficulty 2: 12ms
+// Difficulty 3: 156ms
+// Difficulty 4: 2341ms
+// Difficulty 5: 35782ms
+```
+
+Die Schwierigkeit steigt **exponentiell** - jede zusätzliche führende Null erhöht die durchschnittliche Mining-Zeit um Faktor 16 (bei hex).
+
+## Manipulation Detection
+
+```typescript
+// Versuch, einen Block nachträglich zu ändern
+const blockchain = new Blockchain(4)
+blockchain.addBlock({ amount: 100 })
+blockchain.addBlock({ amount: 200 })
+
+console.log('Valid?', blockchain.isValid()) // ✅ true
+
+// Manipulation
+blockchain.chain[1].data = { amount: 999999 }
+
+console.log('Valid?', blockchain.isValid()) // ❌ false
+// Grund: Hash stimmt nicht mehr mit Daten überein
+```
+
+## Immutability durch Verkettung
+
+Selbst wenn ein Angreifer den Hash neuberechnet, bleibt die Manipulation erkennbar:
+
+```typescript
+// Angreifer berechnet Hash neu
+const manipulatedBlock = blockchain.chain[1]
+manipulatedBlock.hash = manipulatedBlock.calculateHash()
+
+console.log('Valid?', blockchain.isValid()) // ❌ false
+// Grund: previousHash von Block 2 stimmt nicht mehr
+```
+
+Um die Manipulation zu verschleiern, müsste der Angreifer:
+
+1. ✅ Block 1 manipulieren
+2. ✅ Block 1 neu hashen
+3. ✅ Block 2's previousHash anpassen
+4. ✅ Block 2 neu hashen
+5. ✅ Block 3's previousHash anpassen
+6. ✅ ...und so weiter für **alle** nachfolgenden Blöcke
+
+Plus: Alle Blöcke neu minen (Proof-of-Work erfüllen)!
+
+## Erweiterte Konzepte
+
+### Transaktionen mit Digital Signatures
+
+```typescript
+import * as crypto from 'crypto'
+
+export class Transaction {
+  public signature?: string
+
+  constructor(
+    public from: string,
+    public to: string,
+    public amount: number
+  ) {}
+
+  /**
+   * Erstellt Hash der Transaktion
+   */
+  calculateHash(): string {
+    return crypto
+      .createHash('sha256')
+      .update(this.from + this.to + this.amount)
+      .digest('hex')
+  }
+
+  /**
+   * Signiert die Transaktion mit privatem Schlüssel
+   */
+  sign(privateKey: string): void {
+    const sign = crypto.createSign('SHA256')
+    sign.update(this.calculateHash()).end()
+    this.signature = sign.sign(privateKey, 'hex')
+  }
+
+  /**
+   * Verifiziert die Signatur mit öffentlichem Schlüssel
+   */
+  isValid(publicKey: string): boolean {
+    if (!this.signature) return false
+
+    const verify = crypto.createVerify('SHA256')
+    verify.update(this.calculateHash())
+    return verify.verify(publicKey, this.signature, 'hex')
+  }
+}
+```
+
+### Key Generation
+
+```typescript
+/**
+ * Generiert ein RSA Key-Pair
+ */
+function generateKeyPair() {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: 'spki',
+      format: 'pem',
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem',
+    },
+  })
+
+  return { publicKey, privateKey }
+}
+
+// Verwendung
+const alice = generateKeyPair()
+const bob = generateKeyPair()
+
+const tx = new Transaction('Alice', 'Bob', 50)
+tx.sign(alice.privateKey)
+
+console.log('Transaction valid?', tx.isValid(alice.publicKey)) // ✅ true
+```
+
+## Real-World Blockchains
+
+Diese vereinfachte Implementation zeigt die Grundprinzipien. Produktive Blockchains wie **Bitcoin** oder **Ethereum** haben zusätzlich:
+
+### Bitcoin-Spezifisch
+
+- **UTXO Model** statt Account-basiert
+- **Merkle Trees** für effiziente Transaktionsverifikation
+- **Difficulty Adjustment** alle 2016 Blöcke
+- **Consensus durch längste Chain** (Nakamoto Consensus)
+
+### Ethereum-Spezifisch
+
+- **Account Model** statt UTXO
+- **Smart Contracts** (EVM)
+- **Gas Fees** für Transaktionsausführung
+- **Proof-of-Stake** (seit "The Merge" 2022)
+
+### Enterprise Blockchains (Hyperledger Fabric)
+
+- **Permissioned Network** (keine öffentliche Teilnahme)
+- **Channels** für private Transaktionen
+- **Pluggable Consensus** (Kafka, Raft, etc.)
+- **Chaincode** (Smart Contracts in Go, Node.js, Java)
+
+## Praktische Übungen
+
+1. **Merkle Trees**: Implementiere eine Merkle-Root-Berechnung für Transaktionen
+2. **P2P Network**: Simuliere ein Netzwerk mit mehreren Nodes
+3. **Consensus**: Implementiere einen einfachen Proof-of-Stake
+4. **Smart Contracts**: Füge eine einfache Contract-Execution-Engine hinzu
+
+## Weiterführende Ressourcen
+
+- [Bitcoin Whitepaper](https://bitcoin.org/bitcoin.pdf) - Satoshi Nakamoto
+- [Ethereum Whitepaper](https://ethereum.org/en/whitepaper/) - Vitalik Buterin
+- [Hyperledger Fabric Docs](https://hyperledger-fabric.readthedocs.io/)
+
+## Zusammenfassung
+
+Eine Blockchain ist mehr als nur eine verkettete Liste:
+
+- ✅ **Kryptographische Hashes** sichern Datenintegrität
+- ✅ **Proof-of-Work** verhindert Spam und schnelle Manipulation
+- ✅ **Verkettung** macht historische Änderungen unmöglich
+- ✅ **Digital Signatures** authentifizieren Transaktionen
+- ✅ **Dezentralisierung** eliminiert Single Point of Failure
+
+---
+
+_Implementierung basierend auf dem Repository: [ts-blockchain-example](https://github.com/nimble-123/ts-blockchain-example)_

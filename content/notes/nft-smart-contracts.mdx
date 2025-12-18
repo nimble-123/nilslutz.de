@@ -1,0 +1,587 @@
+---
+title: 'NFT Development mit Solidity & Alchemy'
+summary: 'Praktische Einführung in die Entwicklung von ERC-721 NFT Smart Contracts mit Solidity, Hardhat und Alchemy auf Ethereum.'
+tags: ['NFT', 'Ethereum', 'Solidity', 'Web3', 'Smart Contracts']
+date: '2025-12-18'
+---
+
+# NFT Development mit Solidity & Alchemy
+
+Non-Fungible Tokens (NFTs) sind einzigartige digitale Assets auf der Blockchain. Dieser Guide zeigt die praktische Entwicklung eines NFT-Projekts von Grund auf.
+
+## Was sind NFTs?
+
+**NFT (Non-Fungible Token)** = Ein einzigartiger Token auf der Blockchain, der **nicht** mit einem anderen Token austauschbar ist.
+
+### Vergleich: Fungible vs. Non-Fungible
+
+```
+Fungible (ERC-20):
+1 ETH = 1 ETH
+1 USDC = 1 USDC
+→ Austauschbar, teilbar
+
+Non-Fungible (ERC-721):
+CryptoPunk #1 ≠ CryptoPunk #2
+Bored Ape #100 ≠ Bored Ape #200
+→ Einzigartig, unteilbar
+```
+
+## ERC-721 Standard
+
+Der **ERC-721** ist der Standard für NFTs auf Ethereum:
+
+```solidity
+interface IERC721 {
+    // Transfer-Funktionen
+    function transferFrom(address from, address to, uint256 tokenId) external;
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    // Owner-Abfragen
+    function ownerOf(uint256 tokenId) external view returns (address);
+    function balanceOf(address owner) external view returns (uint256);
+
+    // Approval-System
+    function approve(address to, uint256 tokenId) external;
+    function getApproved(uint256 tokenId) external view returns (address);
+    function setApprovalForAll(address operator, bool approved) external;
+
+    // Events
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+}
+```
+
+## NFT Smart Contract Implementation
+
+### Basis-Implementierung mit OpenZeppelin
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract NimbleNFT is ERC721, ERC721URIStorage, Ownable {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    constructor() ERC721("Nimble NFT", "NMBL") Ownable(msg.sender) {}
+
+    /**
+     * Mint einen neuen NFT
+     * @param recipient Empfänger des NFTs
+     * @param tokenURI Metadata URI (IPFS oder HTTP)
+     * @return newTokenId Die ID des neu erstellten Tokens
+     */
+    function mintNFT(address recipient, string memory tokenURI)
+        public
+        onlyOwner
+        returns (uint256)
+    {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+
+        _safeMint(recipient, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+
+        return newTokenId;
+    }
+
+    /**
+     * Burn einen NFT (permanent löschen)
+     */
+    function burn(uint256 tokenId) public {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+        _burn(tokenId);
+    }
+
+    // Override required by Solidity
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+}
+```
+
+### Erweitert: NFT mit Royalties (ERC-2981)
+
+```solidity
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
+
+contract NimbleNFTWithRoyalty is ERC721, ERC721URIStorage, ERC2981, Ownable {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    // Royalty: 5% (500 basis points)
+    uint96 private constant ROYALTY_FEE = 500;
+
+    constructor() ERC721("Nimble NFT", "NMBL") Ownable(msg.sender) {
+        // Set default royalty to contract owner
+        _setDefaultRoyalty(msg.sender, ROYALTY_FEE);
+    }
+
+    function mintNFT(address recipient, string memory tokenURI)
+        public
+        onlyOwner
+        returns (uint256)
+    {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+
+        _safeMint(recipient, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+
+        // Set token-specific royalty
+        _setTokenRoyalty(newTokenId, msg.sender, ROYALTY_FEE);
+
+        return newTokenId;
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721URIStorage, ERC2981)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+}
+```
+
+## NFT Metadata (Token URI)
+
+NFTs verweisen auf Metadata (Bilder, Eigenschaften) über eine **tokenURI**:
+
+### JSON Metadata Format
+
+```json
+{
+  "name": "Nimble NFT #1",
+  "description": "A unique digital collectible",
+  "image": "ipfs://QmYourImageHash",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "Blue"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Laser"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    }
+  ],
+  "external_url": "https://nilslutz.de/nft/1"
+}
+```
+
+### IPFS für dezentrale Speicherung
+
+```bash
+# Upload zu IPFS via Pinata
+curl -X POST "https://api.pinata.cloud/pinning/pinFileToIPFS" \
+  -H "pinata_api_key: YOUR_API_KEY" \
+  -H "pinata_secret_api_key: YOUR_SECRET_KEY" \
+  -F "file=@./metadata.json"
+
+# Response:
+{
+  "IpfsHash": "QmYourMetadataHash",
+  "PinSize": 1234,
+  "Timestamp": "2025-12-18T10:00:00.000Z"
+}
+```
+
+Token URI wird dann: `ipfs://QmYourMetadataHash`
+
+## Development Setup mit Hardhat
+
+### Installation
+
+```bash
+npm init -y
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
+npm install @openzeppelin/contracts
+npx hardhat init
+```
+
+### Hardhat Config
+
+```javascript
+// hardhat.config.js
+require('@nomicfoundation/hardhat-toolbox')
+require('dotenv').config()
+
+module.exports = {
+  solidity: '0.8.20',
+  networks: {
+    sepolia: {
+      url: process.env.ALCHEMY_SEPOLIA_URL,
+      accounts: [process.env.PRIVATE_KEY],
+    },
+    mainnet: {
+      url: process.env.ALCHEMY_MAINNET_URL,
+      accounts: [process.env.PRIVATE_KEY],
+    },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+}
+```
+
+### Deployment Script
+
+```javascript
+// scripts/deploy.js
+const hre = require('hardhat')
+
+async function main() {
+  const [deployer] = await hre.ethers.getSigners()
+
+  console.log('Deploying contract with account:', deployer.address)
+  console.log('Account balance:', (await deployer.getBalance()).toString())
+
+  // Deploy
+  const NimbleNFT = await hre.ethers.getContractFactory('NimbleNFT')
+  const contract = await NimbleNFT.deploy()
+  await contract.deployed()
+
+  console.log('NimbleNFT deployed to:', contract.address)
+
+  // Verify on Etherscan
+  if (hre.network.name !== 'hardhat') {
+    console.log('Waiting for block confirmations...')
+    await contract.deployTransaction.wait(6)
+
+    await hre.run('verify:verify', {
+      address: contract.address,
+      constructorArguments: [],
+    })
+  }
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
+```
+
+### Mint Script
+
+```javascript
+// scripts/mint.js
+const hre = require('hardhat')
+
+async function main() {
+  const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS
+  const METADATA_URI = process.env.METADATA_URI
+
+  const NimbleNFT = await hre.ethers.getContractFactory('NimbleNFT')
+  const contract = NimbleNFT.attach(CONTRACT_ADDRESS)
+
+  const [owner] = await hre.ethers.getSigners()
+
+  console.log('Minting NFT...')
+  const tx = await contract.mintNFT(owner.address, METADATA_URI)
+  await tx.wait()
+
+  console.log('NFT minted successfully!')
+  console.log('Transaction hash:', tx.hash)
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
+```
+
+## Alchemy Integration
+
+**Alchemy** ist ein Blockchain-Infrastruktur-Provider (Alternative zu Infura).
+
+### Setup
+
+```bash
+# .env
+ALCHEMY_SEPOLIA_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY
+ALCHEMY_MAINNET_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY
+PRIVATE_KEY=your_private_key_here
+```
+
+### Alchemy SDK
+
+```javascript
+// scripts/alchemy-nft-info.js
+const { Alchemy, Network } = require('alchemy-sdk')
+
+const config = {
+  apiKey: process.env.ALCHEMY_API_KEY,
+  network: Network.ETH_MAINNET,
+}
+
+const alchemy = new Alchemy(config)
+
+async function getNFTInfo(contractAddress, tokenId) {
+  // Get NFT metadata
+  const metadata = await alchemy.nft.getNftMetadata(contractAddress, tokenId)
+
+  console.log('NFT Name:', metadata.title)
+  console.log('Description:', metadata.description)
+  console.log('Token Type:', metadata.tokenType)
+  console.log('Image URL:', metadata.media[0].gateway)
+
+  // Get owner
+  const owner = await alchemy.nft.getOwnersForNft(contractAddress, tokenId)
+  console.log('Owner:', owner.owners[0])
+
+  // Get floor price
+  const floorPrice = await alchemy.nft.getFloorPrice(contractAddress)
+  console.log('Floor Price:', floorPrice.openSea.floorPrice, 'ETH')
+}
+
+getNFTInfo('0x...YourContractAddress', '1')
+```
+
+## Testing
+
+```javascript
+// test/NimbleNFT.test.js
+const { expect } = require('chai')
+const { ethers } = require('hardhat')
+
+describe('NimbleNFT', function () {
+  let nft
+  let owner
+  let addr1
+
+  beforeEach(async function () {
+    ;[owner, addr1] = await ethers.getSigners()
+
+    const NimbleNFT = await ethers.getContractFactory('NimbleNFT')
+    nft = await NimbleNFT.deploy()
+    await nft.deployed()
+  })
+
+  it('Should mint a new NFT', async function () {
+    const tokenURI = 'ipfs://QmTestHash'
+
+    await nft.mintNFT(addr1.address, tokenURI)
+
+    expect(await nft.ownerOf(1)).to.equal(addr1.address)
+    expect(await nft.tokenURI(1)).to.equal(tokenURI)
+    expect(await nft.balanceOf(addr1.address)).to.equal(1)
+  })
+
+  it('Should transfer NFT', async function () {
+    await nft.mintNFT(owner.address, 'ipfs://test')
+
+    await nft.transferFrom(owner.address, addr1.address, 1)
+
+    expect(await nft.ownerOf(1)).to.equal(addr1.address)
+  })
+
+  it('Should only allow owner to mint', async function () {
+    await expect(nft.connect(addr1).mintNFT(addr1.address, 'ipfs://test')).to.be.revertedWith(
+      'Ownable: caller is not the owner'
+    )
+  })
+
+  it('Should burn NFT', async function () {
+    await nft.mintNFT(owner.address, 'ipfs://test')
+
+    await nft.burn(1)
+
+    await expect(nft.ownerOf(1)).to.be.revertedWith('ERC721: invalid token ID')
+  })
+})
+```
+
+## Gas-Optimierung
+
+### Batch Minting
+
+```solidity
+function batchMint(address[] calldata recipients, string[] calldata tokenURIs)
+    public
+    onlyOwner
+{
+    require(recipients.length == tokenURIs.length, "Length mismatch");
+
+    for (uint256 i = 0; i < recipients.length; i++) {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+
+        _safeMint(recipients[i], newTokenId);
+        _setTokenURI(newTokenId, tokenURIs[i]);
+    }
+}
+```
+
+### ERC-721A (Azuki's optimierter Standard)
+
+```solidity
+import "erc721a/contracts/ERC721A.sol";
+
+contract OptimizedNFT is ERC721A {
+    constructor() ERC721A("Optimized NFT", "OPTI") {}
+
+    // Gas-effizientes Batch Minting
+    function mint(uint256 quantity) external payable {
+        _mint(msg.sender, quantity); // Nur 1 SSTORE pro Batch!
+    }
+}
+```
+
+## Frontend Integration (ethers.js)
+
+```javascript
+import { ethers } from 'ethers'
+import NimbleNFTABI from './NimbleNFT.json'
+
+async function connectWallet() {
+  const provider = new ethers.providers.Web3Provider(window.ethereum)
+  await provider.send('eth_requestAccounts', [])
+  const signer = provider.getSigner()
+
+  return signer
+}
+
+async function mintNFT(recipientAddress, metadataURI) {
+  const signer = await connectWallet()
+
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, NimbleNFTABI, signer)
+
+  const tx = await contract.mintNFT(recipientAddress, metadataURI)
+  console.log('Transaction sent:', tx.hash)
+
+  await tx.wait()
+  console.log('NFT minted!')
+}
+
+async function getUserNFTs(address) {
+  const provider = new ethers.providers.AlchemyProvider('mainnet', ALCHEMY_API_KEY)
+
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, NimbleNFTABI, provider)
+
+  const balance = await contract.balanceOf(address)
+  const nfts = []
+
+  for (let i = 0; i < balance; i++) {
+    const tokenId = await contract.tokenOfOwnerByIndex(address, i)
+    const uri = await contract.tokenURI(tokenId)
+    nfts.push({ tokenId: tokenId.toString(), uri })
+  }
+
+  return nfts
+}
+```
+
+## Marketplace Integration
+
+### OpenSea Metadata Standard
+
+```json
+{
+  "name": "Asset Name",
+  "description": "Description",
+  "image": "ipfs://...",
+  "animation_url": "ipfs://...",  // For video/3D assets
+  "background_color": "FFFFFF",
+  "attributes": [...],
+  "properties": {
+    "files": [
+      {
+        "uri": "ipfs://...",
+        "type": "video/mp4"
+      }
+    ],
+    "category": "video"
+  }
+}
+```
+
+### Royalty Standards (ERC-2981)
+
+```solidity
+// Implementierung siehe oben
+function royaltyInfo(uint256 tokenId, uint256 salePrice)
+    external
+    view
+    returns (address receiver, uint256 royaltyAmount)
+{
+    // 5% royalty
+    return (owner(), (salePrice * 500) / 10000);
+}
+```
+
+## Production Checklist
+
+- ✅ **Security Audit**: Durch renommierte Firma (OpenZeppelin, Trail of Bits)
+- ✅ **Gas-Optimierung**: Batch operations, ERC-721A
+- ✅ **Metadata auf IPFS**: Permanente, dezentrale Speicherung
+- ✅ **Etherscan Verification**: Contract Source Code veröffentlichen
+- ✅ **Pausable Contract**: Emergency-Stop-Mechanismus
+- ✅ **Access Control**: Multi-Sig für kritische Funktionen
+- ✅ **Testing**: 100% Code Coverage
+- ✅ **Documentation**: Inline Comments, NatSpec
+
+## Lessons Learned
+
+### 1. Gas Costs sind signifikant
+
+Mainnet-Deployment und Minting können teuer sein. Testnet (Sepolia, Goerli) ausgiebig nutzen.
+
+### 2. Metadata-Speicherung ist kritisch
+
+IPFS > zentraler Server. Überlege Backup-Strategien (Arweave, Filecoin).
+
+### 3. Security First
+
+Smart Contracts sind **immutable** nach Deployment. Thorough Testing essentiell.
+
+### 4. Community & Standards
+
+ERC-721, ERC-1155, ERC-2981 folgen für maximale Kompatibilität mit Marketplaces.
+
+## Weiterführende Konzepte
+
+- **ERC-1155**: Multi-Token-Standard (Fungible + Non-Fungible)
+- **Soulbound Tokens**: Nicht-transferierbare NFTs
+- **Dynamic NFTs**: On-chain Metadata Updates
+- **Fractional NFTs**: Geteiltes Ownership
+- **NFT Staking**: Lock NFTs für Rewards
+
+## Resources
+
+- [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
+- [Hardhat Documentation](https://hardhat.org/docs)
+- [Alchemy Documentation](https://docs.alchemy.com/)
+- [ERC-721 Standard](https://eips.ethereum.org/EIPS/eip-721)
+
+---
+
+_Praktische Erfahrungen aus: [nimble-nft Repository](https://github.com/nimble-123/nimble-nft)_
