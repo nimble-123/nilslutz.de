@@ -7,6 +7,7 @@ export const profile = {
   socials: {
     github: 'https://github.com/nimble-123',
     linkedin: 'https://www.linkedin.com/in/nlsltz/',
+    community: 'https://community.sap.com/t5/user/viewprofilepage/user-id/73',
     email: 'info@nilslutz.de',
   },
   ctas: {

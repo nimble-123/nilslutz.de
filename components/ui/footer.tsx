@@ -30,6 +30,14 @@ export function Footer() {
               >
                 LinkedIn
               </a>
+              <a
+                href={profile.socials.community}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+              >
+                SAP Community
+              </a>
               <a href={`mailto:${profile.socials.email}`} className="hover:text-primary transition-colors">
                 Email
               </a>

@@ -90,6 +90,50 @@ export default function AboutPage() {
             </div>
           </section>
 
+          {/* Community Engagement Section */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-bold tracking-tight">Community Engagement</h2>
+            <div className="prose dark:prose-invert prose-p:text-muted-foreground prose-strong:text-foreground max-w-none text-lg leading-relaxed">
+              <p>
+                Active member of the <strong>SAP Community</strong> with <strong>249 badges</strong> earned through
+                tutorials, contributions, and event participation. Regular participant in <strong>Devtoberfest</strong>{' '}
+                (2021-2025), achieving finalist status in 2021.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="glass-card rounded-xl p-6 text-center">
+                <div className="text-primary text-3xl font-bold">249</div>
+                <div className="text-muted-foreground mt-2 text-sm font-medium">Community Badges</div>
+              </div>
+              <div className="glass-card rounded-xl p-6 text-center">
+                <div className="text-primary text-3xl font-bold">5</div>
+                <div className="text-muted-foreground mt-2 text-sm font-medium">Devtoberfest Years</div>
+              </div>
+              <div className="glass-card rounded-xl p-6 text-center">
+                <div className="text-primary text-3xl font-bold">Finalist</div>
+                <div className="text-muted-foreground mt-2 text-sm font-medium">Devtoberfest 2021</div>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl p-6">
+              <h3 className="mb-4 font-semibold">Key Achievements</h3>
+              <ul className="text-muted-foreground space-y-2 text-sm">
+                <li>✅ SAP Community Fan 2022</li>
+                <li>✅ Open Documentation Initiative Contributor</li>
+                <li>✅ SAP Community Code Challenge Participant</li>
+                <li>✅ Coffee Corner Connoisseur</li>
+                <li>✅ Multiple SAP TechEd Attendee (2020-2022)</li>
+              </ul>
+              <a
+                href="https://community.sap.com/t5/user/viewprofilepage/user-id/73"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary mt-4 inline-block text-sm font-medium hover:underline"
+              >
+                View Full Profile on SAP Community →
+              </a>
+            </div>
+          </section>
+
           {/* Philosophy Section */}
           <section className="space-y-6">
             <h2 className="text-2xl font-bold tracking-tight">Philosophy & Methodology</h2>
