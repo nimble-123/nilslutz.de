@@ -4,3 +4,4 @@ dist
 build
 coverage
 *.min.js
+CHANGELOG.md
