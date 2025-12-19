@@ -3,6 +3,18 @@ import { Footer } from '@/components/ui/footer'
 import { getNotes } from '@/lib/content'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Writing',
+  description:
+    'Technical writing on SAP CAP patterns, Clean Core architecture, design patterns, and pragmatic guides for enterprise development. Insights on Repository Pattern, Dependency Injection, and event-driven architectures.',
+  openGraph: {
+    title: 'Writing - Nils Lutz',
+    description: 'Pattern libraries, architectural thoughts, and pragmatic guides for SAP BTP development.',
+    url: 'https://nilslutz.de/notes',
+  },
+}
 
 export default async function NotesPage() {
   const notes = await getNotes()

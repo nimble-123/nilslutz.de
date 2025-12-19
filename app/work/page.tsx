@@ -2,6 +2,19 @@ import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { getCaseStudies } from '@/lib/content'
 import { CaseStudyList } from '@/components/specialized/case-study-list'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Case Studies',
+  description:
+    'Selected SAP BTP projects demonstrating Clean Core architecture, Side-by-Side Extensions, event-driven integration, and enterprise patterns. Real-world implementations with CAP, RAP, and Fiori.',
+  openGraph: {
+    title: 'Case Studies - Nils Lutz',
+    description:
+      'Selected SAP BTP projects demonstrating Clean Core architecture, Side-by-Side Extensions, and enterprise integration patterns.',
+    url: 'https://nilslutz.de/work',
+  },
+}
 
 export default async function WorkPage() {
   const caseStudies = await getCaseStudies()

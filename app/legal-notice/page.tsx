@@ -1,5 +1,15 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Legal Notice',
+  description: 'Rechtliche Informationen und Angaben gemäß § 5 TMG für nilslutz.de - Impressum',
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
 
 export default function ImpressumPage() {
   return (

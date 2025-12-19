@@ -5,12 +5,43 @@ import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import Link from 'next/link'
 import { ArrowLeft, Github, ExternalLink } from 'lucide-react'
+import { Metadata } from 'next'
 
 export async function generateStaticParams() {
   const posts = await getCaseStudies()
   return posts.map((post) => ({
     slug: post.slug,
   }))
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const study = await getCaseStudyBySlug(slug)
+
+  if (!study) {
+    return {
+      title: 'Case Study Not Found',
+    }
+  }
+
+  return {
+    title: study.title,
+    description: study.summary,
+    keywords: study.tags,
+    openGraph: {
+      title: `${study.title} - Nils Lutz`,
+      description: study.summary,
+      url: `https://nilslutz.de/work/${slug}`,
+      type: 'article',
+      publishedTime: study.period,
+      tags: study.tags,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: study.title,
+      description: study.summary,
+    },
+  }
 }
 
 export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {

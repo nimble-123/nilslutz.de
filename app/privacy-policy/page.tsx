@@ -1,5 +1,15 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Datenschutzerklärung gemäß DSGVO für nilslutz.de - Informationen zur Datenverarbeitung',
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
 
 export default function DatenschutzPage() {
   return (

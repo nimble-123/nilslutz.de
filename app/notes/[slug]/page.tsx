@@ -6,12 +6,43 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import Link from 'next/link'
 import { ArrowLeft, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
+import { Metadata } from 'next'
 
 export async function generateStaticParams() {
   const posts = await getNotes()
   return posts.map((post) => ({
     slug: post.slug,
   }))
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const note = await getNoteBySlug(slug)
+
+  if (!note) {
+    return {
+      title: 'Note Not Found',
+    }
+  }
+
+  return {
+    title: note.title,
+    description: note.summary,
+    keywords: note.tags,
+    openGraph: {
+      title: `${note.title} - Nils Lutz`,
+      description: note.summary,
+      url: `https://nilslutz.de/notes/${slug}`,
+      type: 'article',
+      publishedTime: note.date,
+      tags: note.tags,
+    },
+    twitter: {
+      card: 'summary',
+      title: note.title,
+      description: note.summary,
+    },
+  }
 }
 
 export default async function NotePage({ params }: { params: Promise<{ slug: string }> }) {

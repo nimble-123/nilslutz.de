@@ -3,6 +3,18 @@ import { Footer } from '@/components/ui/footer'
 import { AvailabilityBadge } from '@/components/ui/availability-badge'
 import { profile } from '@/content/profile'
 import { Mail, Linkedin, Github } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contact',
+  description:
+    'Get in touch for SAP BTP architecture consulting, Clean Core strategies, or Side-by-Side Extension development. Available for enterprise projects and technical consulting.',
+  openGraph: {
+    title: 'Contact - Nils Lutz',
+    description: 'Interested in robust SAP BTP architectures or Clean Core strategies? Get in touch.',
+    url: 'https://nilslutz.de/contact',
+  },
+}
 
 export default function ContactPage() {
   return (

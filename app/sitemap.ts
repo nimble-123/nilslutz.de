@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const caseStudies = await getCaseStudies()
   const notes = await getNotes()
 
-  const baseUrl = 'https://nilslutz.dev' // Replace with actual domain
+  const baseUrl = 'https://nilslutz.de'
 
   const csUrls = caseStudies.map((cs) => ({
     url: `${baseUrl}/work/${cs.slug}`,
@@ -51,6 +51,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/tools`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/legal-notice`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
     ...csUrls,
     ...noteUrls,

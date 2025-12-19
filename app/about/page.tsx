@@ -4,6 +4,9 @@ import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { motion } from 'framer-motion'
 
+// Note: Metadata export doesn't work with 'use client', use layout.tsx or page metadata wrapper
+// For SEO purposes, consider extracting animations to a separate client component
+
 // Timeline data
 const experience = [
   {

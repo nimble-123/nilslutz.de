@@ -5,8 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: '/private/',
     },
-    sitemap: 'https://nilslutz.dev/sitemap.xml',
+    sitemap: 'https://nilslutz.de/sitemap.xml',
   }
 }
