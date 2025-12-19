@@ -13,7 +13,7 @@ date: '2025-12-17'
 
 In kleinen Projekten werden alle Annotations in einer Datei definiert:
 
-```cds
+```capcds
 // ❌ Anti-Pattern: Alles in einer Datei (annotations.cds)
 using TrackService from './track-service';
 
@@ -91,7 +91,7 @@ srv/track-service/annotations/
 
 ### Master Import (annotations.cds)
 
-```cds
+```capcds
 // 1. Common Concerns (entity-übergreifend)
 using from './common/labels';
 using from './common/field-controls';
@@ -116,7 +116,7 @@ using from './ui/users/basic';
 
 **Zweck:** Texte, Übersetzungen, Titles
 
-```cds
+```capcds
 using TrackService from '../../track-service';
 
 // TimeEntries
@@ -150,7 +150,7 @@ annotate TrackService.TimeEntries with @(
 
 **Zweck:** @readonly, @mandatory, @UI.Hidden
 
-```cds
+```capcds
 using TrackService from '../../track-service';
 
 annotate TrackService.TimeEntries with {
@@ -177,7 +177,7 @@ annotate TrackService.TimeEntries with {
 
 **Zweck:** Insert/Update/Delete Restrictions
 
-```cds
+```capcds
 using TrackService from '../../track-service';
 
 annotate TrackService.TimeEntries with @(
@@ -213,7 +213,7 @@ annotate TrackService.TimeEntries with @(
 
 **Zweck:** Dropdowns, F4-Hilfen
 
-```cds
+```capcds
 using TrackService from '../../track-service';
 
 annotate TrackService.TimeEntries with {
@@ -253,7 +253,7 @@ annotate TrackService.TimeEntries with {
 
 **Zweck:** List Report Table Configuration
 
-```cds
+```capcds
 using TrackService from '../../../track-service';
 
 annotate TrackService.TimeEntries with @(
@@ -296,7 +296,7 @@ annotate TrackService.TimeEntries with @(
 
 **Zweck:** Object Page Sections & Field Groups
 
-```cds
+```capcds
 using TrackService from '../../../track-service';
 
 annotate TrackService.TimeEntries with @(
@@ -384,7 +384,7 @@ Jede Datei hat **einen** Zweck:
 
 ### 4. Wiederverwendung
 
-```cds
+```capcds
 // Shared Field Controls für alle Entitäten
 using from './common/field-controls';
 
@@ -403,7 +403,7 @@ using from './ui/time-entries/list';
 
 ### 2. Ein Concern pro Datei
 
-```cds
+```capcds
 // ✅ Gut: Nur Labels
 annotate TimeEntries with {
   workDate @Common.Label: '{i18n>workDate}';
@@ -418,7 +418,7 @@ annotate TimeEntries with {
 
 ### 3. Master Import
 
-```cds
+```capcds
 // annotations.cds als zentrale Import-Datei
 using from './common/labels';
 using from './common/capabilities';

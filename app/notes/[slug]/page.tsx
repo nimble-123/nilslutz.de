@@ -2,11 +2,11 @@ import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { getNoteBySlug, getNotes } from '@/lib/content'
 import { notFound } from 'next/navigation'
-import { MDXRemote } from 'next-mdx-remote/rsc'
 import Link from 'next/link'
 import { ArrowLeft, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { Metadata } from 'next'
+import { MDXContent } from '@/components/ui/mdx-content'
 
 export async function generateStaticParams() {
   const posts = await getNotes()
@@ -90,8 +90,8 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
           </div>
 
           {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg max-w-none">
-            <MDXRemote source={note.content} />
+          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
+            <MDXContent source={note.content} />
           </div>
         </article>
       </main>

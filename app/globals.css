@@ -161,3 +161,92 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--muted-foreground);
 }
+
+/* Syntax Highlighting - Multiple Themes Support */
+code[data-theme*=' '],
+code[data-theme*=' '] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  code[data-theme*=' '],
+  code[data-theme*=' '] span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+  }
+}
+
+/* Support for next-themes with class strategy */
+.dark code[data-theme*=' '],
+.dark code[data-theme*=' '] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+/* Code Block Styling */
+pre {
+  @apply border-border bg-card overflow-x-auto rounded-lg border p-4;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+pre code {
+  @apply text-sm leading-relaxed;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  display: block;
+}
+
+/* Inline Code */
+:not(pre) > code {
+  @apply bg-secondary/60 text-foreground border-border rounded border px-1.5 py-0.5 text-sm;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+/* Line Styling */
+code[data-line-numbers] {
+  counter-reset: line;
+}
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  @apply text-muted-foreground mr-4 inline-block w-4 text-right;
+}
+
+code[data-line-numbers-max-digits='2'] > [data-line]::before {
+  width: 1.25rem;
+}
+
+code[data-line-numbers-max-digits='3'] > [data-line]::before {
+  width: 1.75rem;
+}
+
+/* Highlighted Lines */
+[data-highlighted-line] {
+  @apply bg-accent/20 border-primary border-l-2 px-4;
+}
+
+/* Highlighted Chars */
+[data-highlighted-chars] {
+  @apply bg-primary/20 border-primary border-b-2;
+  box-shadow: 0 0 0 4px rgb(var(--primary) / 0.1);
+}
+
+/* Code Title */
+[data-rehype-pretty-code-title] {
+  @apply bg-muted text-foreground border-border rounded-t-lg border border-b-0 px-4 py-2 text-sm font-medium;
+}
+
+[data-rehype-pretty-code-title] + pre {
+  @apply mt-0 rounded-t-none;
+}
+
+/* Code Caption */
+[data-rehype-pretty-code-caption] {
+  @apply bg-muted text-muted-foreground border-border rounded-b-lg border border-t-0 px-4 py-2 text-xs;
+}
+
+pre:has(+ [data-rehype-pretty-code-caption]) {
+  @apply mb-0 rounded-b-none;
+}
