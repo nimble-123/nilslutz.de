@@ -43,11 +43,11 @@ export function Footer() {
               </a>
             </div>
             <div className="text-muted-foreground flex flex-wrap gap-4 text-xs md:gap-6">
-              <a href="/impressum" className="hover:text-primary transition-colors">
-                Impressum
+              <a href="/legal-notice" className="hover:text-primary transition-colors">
+                Legal Notice
               </a>
-              <a href="/datenschutz" className="hover:text-primary transition-colors">
-                Datenschutz
+              <a href="/privacy-policy" className="hover:text-primary transition-colors">
+                Privacy Policy
               </a>
             </div>
             <p className="text-muted-foreground text-xs">
