@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/nimble-123/nilslutz.de/compare/v0.0.4...v0.0.5) (2025-12-19)
+
+
+### Features
+
+* add CDS language support with syntax highlighting and configuration ([7740ec3](https://github.com/nimble-123/nilslutz.de/commit/7740ec3506c3cea136e9936baf4b1baa3a9e2ced))
+* display current version in footer ([5b5ee38](https://github.com/nimble-123/nilslutz.de/commit/5b5ee387ffa5c39fef202279fa2b2e2b9b37ed7c))
+* integrate tsparticles for enhanced particle background effects ([16e1d0c](https://github.com/nimble-123/nilslutz.de/commit/16e1d0c109b578f12b6dc3d6d262544651416af1))
+
+
+### Bug Fixes
+
+* escape special characters in metrics for proper rendering ([5b8c0bc](https://github.com/nimble-123/nilslutz.de/commit/5b8c0bcd100fa31f5d08711ea4c9d445f0dac8f7))
+* update import path for routes to correct location ([18624f2](https://github.com/nimble-123/nilslutz.de/commit/18624f22201df8bd88ebd24459436e0b2e6de8a4))
+
+
+### Chores
+
+* add CHANGELOG.md to .prettierignore ([232bb63](https://github.com/nimble-123/nilslutz.de/commit/232bb6305334082de3b0a5ada64d2e849c47b6ed))
+
+
+### Code Refactoring
+
+* Refactor case studies for improved clarity and detail ([2e370ae](https://github.com/nimble-123/nilslutz.de/commit/2e370aeb1e3998c406b2d021644d650830587465))
+
 ### 0.0.4 (2025-12-19)
 
 
