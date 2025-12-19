@@ -6,7 +6,7 @@ period: '2024'
 role: 'Lead Developer'
 stack: ['SAP Event Mesh', 'CAP', 'CloudEvents', 'S/4HANA Enterprise Messaging']
 featured: true
-metrics: ['< 2 sec Event Processing', '99.95% Delivery Rate', '-80% Integration Effort']
+metrics: ['&lt; 2 sec Event Processing', '99.95% Delivery Rate', '-80% Integration Effort']
 ---
 
 # Problem
@@ -165,7 +165,7 @@ export default (srv: ApplicationService) => {
 
 ## Technical Achievements
 
-- **< 2 Sekunden** End-to-End Event Processing (S/4HANA → Subsystem)
+- **&lt; 2 Sekunden** End-to-End Event Processing (S/4HANA → Subsystem)
 - **99.95% Delivery Rate** über 12 Monate (SLA: 99.9%)
 - **Zero Data Loss**: Dank At-Least-Once Semantics + DLQ
 - **Asynchronous**: S/4HANA User-Transaktionen nicht mehr blockiert (0 sec statt 3-5 sec)
@@ -178,7 +178,7 @@ export default (srv: ApplicationService) => {
 | Production Delays             | 2h/day       | 0h                   | Eliminated     |
 | Integration Time (new system) | 6 months     | 5 days               | 97% faster     |
 | Manual Rework FTE             | 3.0          | 0                    | 100% reduction |
-| User Transaction Time         | 3-5 sec      | <0.5 sec             | 90% faster     |
+| User Transaction Time         | 3-5 sec      | &lt;0.5 sec          | 90% faster     |
 | System Coupling               | Tight        | Loose                | Decoupled      |
 | Maintenance Downtime          | Coupled      | Independent          | Flexible       |
 
