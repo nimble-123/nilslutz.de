@@ -1,4 +1,5 @@
 import { profile } from '@/content/profile'
+import packageJson from '@/package.json'
 
 export function Footer() {
   return (
@@ -51,7 +52,7 @@ export function Footer() {
               </a>
             </div>
             <p className="text-muted-foreground text-xs">
-              &copy; {new Date().getFullYear()} Nils Lutz. All rights reserved.
+              &copy; {new Date().getFullYear()} Nils Lutz. All rights reserved. · v{packageJson.version}
             </p>
           </div>
         </div>
