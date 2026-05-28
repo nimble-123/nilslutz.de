@@ -15,6 +15,9 @@
     "start": "next start",
     "deploy": "vercel --prod",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "release": "standard-version",
@@ -46,6 +49,7 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^25",
@@ -57,6 +61,7 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "standard-version": "^9.5.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.7"
   }
 }

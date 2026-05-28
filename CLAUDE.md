@@ -30,12 +30,24 @@ npm run dev            # start dev server (http://localhost:3000)
 npm run build          # production build (run this to verify before committing)
 npm start              # serve the production build
 npm run lint           # ESLint (eslint-config-next: core-web-vitals + typescript)
+npm test               # Vitest unit tests (run once)
+npm run test:watch     # Vitest in watch mode
+npm run test:e2e       # Playwright E2E smoke tests (needs: npx playwright install chromium)
 npm run format         # Prettier write across the repo
 npm run format:check   # Prettier check (CI-style, no writes)
 npm run deploy         # vercel --prod
 ```
 
-There is **no test suite**. Verify changes with `npm run build` and `npm run lint`.
+### Testing
+
+- **Unit (Vitest)**: co-located `*.test.ts` next to the code under test (e.g. `lib/content.test.ts`,
+  `lib/utils.test.ts`). Runs in a Node environment; `@/*` alias is wired in `vitest.config.ts`.
+- **E2E (Playwright)**: smoke specs in `e2e/*.spec.ts` (route 200s + chrome, content nav, MDX code
+  highlighting, theme toggle). Config in `playwright.config.ts` boots a production build
+  (`next build && next start`) on port 3000. Install browsers first with
+  `npx playwright install chromium`.
+- Always verify changes with `npm run build`, `npm run lint`, and `npm test`. Run `npm run test:e2e`
+  for UI-affecting changes.
 
 ## Directory Structure
 
@@ -70,20 +82,24 @@ public/                    # Static assets (og-image, etc.)
 ## Conventions
 
 ### Code style (enforced by Prettier — see `.prettierrc`)
+
 - **No semicolons**, single quotes, `printWidth` 120, 2-space indent, ES5 trailing commas.
 - JSX uses double quotes (`jsxSingleQuote: false`), always parenthesize arrow params.
 - `prettier-plugin-tailwindcss` auto-sorts Tailwind class lists — let it.
 
 ### Imports & paths
+
 - Use the `@/*` path alias (maps to repo root) — e.g. `import { cn } from '@/lib/utils'`.
 
 ### Components
+
 - Server Components by default. Add `'use client'` only when you need state/effects/browser APIs (e.g. `case-study-list.tsx`, `theme-toggle.tsx`, hooks).
 - Put reusable/generic components in `components/ui/`; one-off page sections in `components/specialized/`.
 - Compose Tailwind classes with `cn(...)` (clsx + tailwind-merge), not string concatenation.
 - Use theme tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `border-border`, etc.) rather than raw colors, so light/dark mode works. Tokens are defined in `app/globals.css`.
 
 ### Routing & data
+
 - Content is read from the filesystem **at build time** via `lib/content.ts`; the site is statically generated.
 - Dynamic routes (`work/[slug]`, `notes/[slug]`) must implement `generateStaticParams` and `generateMetadata`.
 - `params` is a `Promise` in Next.js 16 — `await` it (e.g. `const { slug } = await params`).
@@ -93,26 +109,28 @@ public/                    # Static assets (og-image, etc.)
 Add MDX files to the relevant directory; the slug is the filename (without `.mdx`).
 
 **Case study** — `content/case-studies/<slug>.mdx`:
+
 ```yaml
 ---
 title: 'Project Title'
 summary: 'Short description...'
-tags: ['CAP', 'BTP', 'Architecture']   # used by client-side filter; see filters list in case-study-list.tsx
+tags: ['CAP', 'BTP', 'Architecture'] # used by client-side filter; see filters list in case-study-list.tsx
 period: '2024'
 role: 'Solution Architect'
 stack: ['Node.js', 'HANA']
-featured: true                          # featured items sort first
-metrics: ['-30% Costs']                 # optional
-links: { github: '...', demo: '...' }   # optional
+featured: true # featured items sort first
+metrics: ['-30% Costs'] # optional
+links: { github: '...', demo: '...' } # optional
 ---
 ```
 
 **Note (blog)** — `content/notes/<slug>.mdx`:
+
 ```yaml
 ---
 title: 'Article Title'
 summary: 'Teaser...'
-date: '2024-03-20'   # YYYY-MM-DD, used for descending sort
+date: '2024-03-20' # YYYY-MM-DD, used for descending sort
 tags: ['Architecture']
 ---
 ```
