@@ -10,6 +10,8 @@ export function ModeToggle({ className }: { className?: string }) {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
+    // Mount guard for SSR-safe theme rendering; intentional one-shot setState.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

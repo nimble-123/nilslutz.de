@@ -36,6 +36,8 @@ export function TypewriterEffect({ segments, className, cursorClassName, speed =
     if (!isInView || characters.length === 0) return
 
     let currentIndex = 0
+    // Reset animation state when the effect re-runs for new input; intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayedText([])
     setIsComplete(false)
 
