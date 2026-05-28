@@ -3,21 +3,7 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { motion } from 'framer-motion'
-import {
-  Monitor,
-  Laptop,
-  Keyboard,
-  Mouse,
-  Code2,
-  Terminal,
-  Package,
-  Cloud,
-  Headphones,
-  Rocket,
-  Server,
-  Database,
-  Boxes,
-} from 'lucide-react'
+import { Laptop, Code2, Package, Cloud, Rocket, Server, Boxes } from 'lucide-react'
 
 const categories = [
   {
