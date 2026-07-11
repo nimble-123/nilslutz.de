@@ -13,7 +13,8 @@ const experience = [
     role: 'Lead Software Engineer',
     company: 'Netze BW GmbH',
     period: 'Dec 2024 - Present',
-    description: 'Focus on SAP S/4HANA and SAP BTP architectures. Leading the Clean Core initiative.',
+    description:
+      'Shaping the target architecture and development standards (Clean Core, API-first, event-driven integration) for the SAP landscape. Leading the Clean Core initiative and contributing to cross-team architecture governance.',
   },
   {
     role: 'Senior Software Engineer',
@@ -79,7 +80,9 @@ export default function AboutPage() {
               <p>
                 I design and build Side-by-Side Extensions with <strong>CAP</strong>, <strong>RAP</strong>, and{' '}
                 <strong>Fiori</strong> on SAP BTP. My primary focus is on <strong>Clean Core</strong> compliance,
-                event-driven architectures, and distinct &quot;Separation of Concerns&quot;.
+                event-driven architectures, and distinct &quot;Separation of Concerns&quot;. Increasingly, my work has
+                shifted from building individual solutions to shaping the <strong>target architecture</strong> and the{' '}
+                <strong>development standards</strong> the whole SAP landscape is built on.
               </p>
 
               <br></br>
