@@ -29,14 +29,14 @@ export function Hero() {
         <TypewriterEffect
           className="text-foreground/80 max-w-2xl text-xl leading-relaxed md:text-2xl"
           segments={[
-            { text: 'I build ' },
+            { text: 'I architect ' },
             {
               text: 'Clean-Core compliant',
               className: 'text-primary font-medium',
             },
-            { text: ' Side-by-Side Extensions with ' },
+            { text: ' SAP solutions on ' },
             { text: 'BTP/CAP/RAP/Fiori', className: 'font-medium' },
-            { text: ' – robust, documented, and operable.' },
+            { text: ' – and set the standards they run on.' },
           ]}
         />
 
