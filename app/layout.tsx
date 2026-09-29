@@ -102,9 +102,7 @@ export default function RootLayout({
       <head>
         <StructuredData />
       </head>
-      <body
-        className="bg-background text-foreground min-h-screen font-sans antialiased"
-      >
+      <body className="bg-background text-foreground min-h-screen font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <a
             href="#main"

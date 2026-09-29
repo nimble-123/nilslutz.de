@@ -36,9 +36,12 @@ export function RiveMachine({ className, caption }: { className?: string; captio
   }, [])
 
   return (
-    <figure ref={ref} className={cn('bg-paper text-ink flex flex-col shadow-[0_0_0_1px_oklch(0_0_0/0.1)]', className)}>
-      <div className="relative aspect-[4/3] w-full">{near && <RiveMachineCanvas fire={fire} reduced={reduced} />}</div>
-      <figcaption className="flex items-center justify-between gap-3 p-2 pl-3 shadow-[0_-1px_0_rgb(18_18_17/0.14)]">
+    <figure ref={ref} className={cn('text-ink flex flex-col shadow-[inset_0_0_0_2px_var(--ink)]', className)}>
+      {/* Printed as a duotone: greyscale artwork multiplied onto the signal colour behind it */}
+      <div className="relative aspect-[4/3] w-full mix-blend-multiply contrast-125 grayscale">
+        {near && <RiveMachineCanvas fire={fire} reduced={reduced} />}
+      </div>
+      <figcaption className="flex items-center justify-between gap-3 p-2 pl-3 shadow-[0_-2px_0_var(--ink)]">
         <span className="label opacity-70">{caption ?? 'Fig. 1 — Enterprise data machine'}</span>
         <button
           type="button"

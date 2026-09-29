@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Layout, Fit, Alignment, RuntimeLoader, useRive, useStateMachineInput } from '@rive-app/react-canvas-lite'
+import { Layout, Fit, Alignment, Rive, RuntimeLoader, useRive, useStateMachineInput } from '@rive-app/react-canvas-lite'
 
 // Self-hosted runtime: cdn.rive.app / jsdelivr are not needed (and not reachable everywhere)
 RuntimeLoader.setWasmUrl('/rive/rive.wasm')
 RuntimeLoader.setWasmFallbackUrl(null)
+// This MIT example asset only exposes classic state machine inputs (no data binding)
+Rive.suppressDeprecationWarnings = ['state-machine-inputs']
 
 const STATE_MACHINE = 'State Machine 1'
 
@@ -17,7 +19,7 @@ export default function RiveMachineCanvas({ fire, reduced }: { fire: number; red
   const [failed, setFailed] = useState(false)
   const { rive, RiveComponent } = useRive({
     src: '/rive/little-machine.riv',
-    stateMachines: STATE_MACHINE,
+    stateMachine: STATE_MACHINE,
     autoplay: !reduced,
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
     onLoadError: () => setFailed(true),

@@ -118,7 +118,10 @@ void main() {
 
   vec3 col = uInk * m + uSignal * fringe * (1.0 - m);
   float alpha = m + fringe * (1.0 - m);
-  gl_FragColor = vec4(col, alpha) * uReveal;
+  // THREE.Color uniforms are linear: convert the straight colour to the output space, then premultiply
+  vec3 straight = col / max(alpha, 1e-4);
+  vec4 outCol = linearToOutputTexel(vec4(straight, 1.0));
+  gl_FragColor = vec4(outCol.rgb * alpha, alpha) * uReveal;
 }
 `
 

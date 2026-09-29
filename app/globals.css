@@ -181,7 +181,8 @@ blockquote {
   }
 
   .text-outline {
-    color: transparent;
+    /* fill-color (not color) so currentColor still feeds the stroke */
+    -webkit-text-fill-color: transparent;
     -webkit-text-stroke: 1.5px currentColor;
   }
 

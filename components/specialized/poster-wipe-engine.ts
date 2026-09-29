@@ -58,7 +58,9 @@ void main() {
 
   // edge displacement: calm ripple at rest, a viscous bulge while scrubbing
   float y = px.y / uSize.y;
-  float amp = mix(10.0, 90.0, uVel);
+  // flatten the edge at the viewport sides so a resting boundary never leaves a sliver on screen
+  float edgeFade = smoothstep(12.0, 64.0, px.x) * smoothstep(12.0, 64.0, uSize.x - px.x);
+  float amp = mix(10.0, 90.0, uVel) * edgeFade;
   float wave = (fbm(vec2(y * 3.0, uTime * 0.25 + floor(trackX / uPanelW + 0.5) * 7.0)) - 0.5) * 2.0;
   wave += sin(y * 6.2831 * 1.5 + uTime * 1.2) * 0.35 * uVel;
   float displaced = trackX + wave * amp;
@@ -71,9 +73,10 @@ void main() {
   float edgeDist = (fract(fi + 0.5) - 0.5) * uPanelW;   // signed px to nearest boundary
   float lineOffset = 6.0 + 18.0 * uVel;
   float line = smoothstep(1.6, 0.0, abs(edgeDist - lineOffset)) * step(0.5, fi) * step(fi, float(uCount) - 0.5);
-  col = mix(col, uSignal, line * 0.9);
+  col = mix(col, uSignal, line * 0.9 * edgeFade);
 
-  gl_FragColor = vec4(col, 1.0);
+  // uniforms arrive linear (THREE.Color): encode for the sRGB canvas so panels match their CSS colours
+  gl_FragColor = linearToOutputTexel(vec4(col, 1.0));
 }
 `
 

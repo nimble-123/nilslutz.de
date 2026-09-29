@@ -110,14 +110,11 @@ export function PosterSequence({
           scrub: true,
           invalidateOnRefresh: true,
           anticipatePin: 1,
-          onToggle: (self) => {
-            visible = self.isActive
-          },
         },
       })
     }, section)
 
-    // Visible while pinned or near it (IO covers the approach before the pin starts)
+    // Render while any part of the sequence is on screen (incl. approach and exit of the pin)
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting
     })
@@ -240,7 +237,7 @@ export function PosterSequence({
                 <div className="relative col-span-4 md:col-span-12">
                   <span
                     aria-hidden="true"
-                    className="type-display text-outline pointer-events-none absolute -top-[0.1em] right-0 text-[clamp(8rem,34vw,34rem)] leading-none opacity-30"
+                    className="type-display text-outline pointer-events-none absolute -top-[0.1em] right-0 hidden text-[clamp(8rem,34vw,34rem)] leading-none opacity-30 md:block"
                   >
                     {pad(i + 1)}
                   </span>
@@ -287,7 +284,11 @@ export function PosterSequence({
                     >
                       <dt className="label mt-2 opacity-75">{m.value ? m.label : 'Outcome'}</dt>
                       <dd className="text-[clamp(1.4rem,4vw,4.2rem)] leading-none font-black tracking-[-0.02em] [font-stretch:87.5%] tabular-nums">
-                        {m.value ?? <span className="text-[0.45em] leading-tight font-bold">{m.label}</span>}
+                        {m.value ?? (
+                          <span className="block text-[0.42em] leading-tight font-bold tracking-normal text-balance [font-stretch:100%]">
+                            {m.label}
+                          </span>
+                        )}
                       </dd>
                     </div>
                   ))}
