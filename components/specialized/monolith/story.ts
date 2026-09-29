@@ -17,7 +17,7 @@ export const exhibitCentre = (i: number) => FIRST + (i * (LAST - FIRST)) / (EXHI
 /** 1 while exhibit `i` is on view, easing to 0 between neighbours */
 export function exhibitWeight(i: number, p: number) {
   const d = Math.abs(p - exhibitCentre(i))
-  return 1 - smooth(0.018, 0.036, d)
+  return 1 - smooth(0.026, 0.0385, d)
 }
 
 /** 1 = intact monolith, 0 = fully fractured */

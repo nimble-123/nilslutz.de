@@ -140,7 +140,8 @@ export function MonolithStory({ exhibits }: { exhibits: Exhibit[] }) {
         lastRoom = room
         roomRef.current.textContent = `${['I', 'II', 'III', 'IV'][room]} — ${ROOMS[room].label}`
       }
-      const count = active >= 0 ? `${String(active + 1).padStart(2, '0')} / ${String(EXHIBIT_COUNT).padStart(2, '0')}` : ''
+      const count =
+        active >= 0 ? `${String(active + 1).padStart(2, '0')} / ${String(EXHIBIT_COUNT).padStart(2, '0')}` : ''
       if (count !== lastCount && countRef.current) {
         lastCount = count
         countRef.current.textContent = count
@@ -303,8 +304,8 @@ export function MonolithStory({ exhibits }: { exhibits: Exhibit[] }) {
                   data-tagline
                   className="text-foreground/80 mt-4 max-w-md text-lg leading-snug text-pretty md:text-xl"
                 >
-                  I architect Clean-Core compliant SAP solutions on BTP/CAP/RAP/Fiori – and set the standards they
-                  run on.
+                  I architect Clean-Core compliant SAP solutions on BTP/CAP/RAP/Fiori – and set the standards they run
+                  on.
                 </p>
                 <div data-intro className="mt-7 flex flex-wrap items-center gap-2">
                   <Link

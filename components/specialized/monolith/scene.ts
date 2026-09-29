@@ -210,11 +210,13 @@ export function createMonolithScene(canvas: HTMLCanvasElement, opts: MonolithOpt
     const dx = cell.centroid[0] - core[0]
     const dy = cell.centroid[1] - core[1]
     const len = Math.hypot(dx, dy) || 1
-    const reach = 0.7 + rand() * 0.55
+    const reach = 0.65 + rand() * 0.45
+    // shards levitate: those below the core barely sink, so nothing passes through the floor
+    const up = dy / len
     const drift = cell.isCore
       ? new THREE.Vector3(0, 0, 0)
-      : new THREE.Vector3((dx / len) * reach * 1.35, (dy / len) * reach * 0.62, (rand() - 0.45) * 1.3)
-    const spin = new THREE.Euler((rand() - 0.5) * 0.9, (rand() - 0.5) * 1.3, (rand() - 0.5) * 0.7)
+      : new THREE.Vector3((dx / len) * reach * 1.25, up * reach * (up < 0 ? 0.16 : 0.3) + 0.06, (rand() - 0.62) * 0.9)
+    const spin = new THREE.Euler((rand() - 0.5) * 0.6, (rand() - 0.5) * 0.9, (rand() - 0.5) * 0.45)
     return { mesh, cell, home, drift, spin, phase: rand() * Math.PI * 2 }
   })
 
@@ -250,10 +252,9 @@ export function createMonolithScene(canvas: HTMLCanvasElement, opts: MonolithOpt
   const post = new THREE.Scene()
   const postMat = new THREE.ShaderMaterial({
     vertexShader: postVertex,
-    fragmentShader: postFragment.replace(
-      'gl_FragColor = vec4(col, 1.0);',
-      'col *= uExposure; gl_FragColor = vec4(col, 1.0);'
-    ).replace('uniform vec2 uRes;', 'uniform vec2 uRes;\n  uniform float uExposure;'),
+    fragmentShader: postFragment
+      .replace('gl_FragColor = vec4(col, 1.0);', 'col *= uExposure; gl_FragColor = vec4(col, 1.0);')
+      .replace('uniform vec2 uRes;', 'uniform vec2 uRes;\n  uniform float uExposure;'),
     uniforms: {
       uScene: { value: compRT.texture },
       uTime,
@@ -311,7 +312,7 @@ export function createMonolithScene(canvas: HTMLCanvasElement, opts: MonolithOpt
       m.position.set(
         s.home.x + s.drift.x * e * sx,
         s.home.y + s.drift.y * e * sy + sway,
-        s.home.z + s.drift.z * e + f * (s.cell.isCore ? 0.35 : 0.6)
+        s.home.z + s.drift.z * e + f * (s.cell.isCore ? 0.3 : 0.45)
       )
       const calm = 1 - f * 0.75
       m.rotation.set(
@@ -346,7 +347,7 @@ export function createMonolithScene(canvas: HTMLCanvasElement, opts: MonolithOpt
     lookTarget.set(0, 1.25, 0)
 
     const into = smooth(0.08, 0.24, p)
-    dist = base - into * (portrait ? 0.2 : 1.0)
+    dist = base - into * (portrait ? 0.0 : 0.35)
     camY += into * 0.18
     // orbit across the exhibits
     const orbit = smooth(0.2, 0.8, p)

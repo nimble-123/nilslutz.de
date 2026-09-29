@@ -80,7 +80,7 @@ export function clipToBisector(poly: Vec2[], a: Vec2, b: Vec2): Vec2[] {
     const sp = side(p)
     const sq = side(q)
     if (sp <= 0) out.push(p)
-    if ((sp <= 0) !== (sq <= 0)) {
+    if (sp <= 0 !== sq <= 0) {
       const t = sp / (sp - sq)
       out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
     }
@@ -162,11 +162,7 @@ export function extrudePrism(poly: Vec2[], depth: number): PrismBuffers {
   const zf = depth / 2
   const zb = -depth / 2
 
-  const push = (
-    v: [number, number, number][],
-    n: [number, number, number],
-    e: [number, number, number, number][]
-  ) => {
+  const push = (v: [number, number, number][], n: [number, number, number], e: [number, number, number, number][]) => {
     // make winding agree with the normal
     const [a, b, c] = v
     const ux = b[0] - a[0],

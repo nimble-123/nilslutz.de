@@ -21,13 +21,17 @@ const common = /* glsl */ `
     float warp = fbm(q * 0.9);
     float band = fbm(vec2(q.x * 0.28, q.y * 2.6) + warp * 0.9);
     float vein = smoothstep(0.52, 0.78, band);
-    vec3 lime = vec3(0.905, 0.872, 0.815);
-    vec3 honey = vec3(0.835, 0.785, 0.705);
-    vec3 col = mix(lime, honey, vein * 0.75);
-    float pores = smoothstep(0.74, 0.86, noise(vec2(q.x * 11.0, q.y * 34.0)));
-    col *= 1.0 - pores * 0.16;
-    col *= 0.975 + 0.05 * noise(q * 70.0);
-    col *= 0.975 + 0.05 * hash(id + 9.0);
+    // travertine: soft horizontal bedding, a few long thin voids, very low contrast
+    vec3 lime = vec3(0.912, 0.884, 0.834);
+    vec3 honey = vec3(0.862, 0.818, 0.748);
+    vec3 col = mix(lime, honey, vein * 0.55);
+    float bed = sin(q.y * 7.0 + warp * 5.0 + fbm(vec2(q.x * 0.6, q.y * 3.0)) * 3.0);
+    col *= 0.985 + 0.018 * bed;
+    float pitN = noise(vec2(q.x * 4.5, q.y * 38.0) + warp * 2.0);
+    float pits = smoothstep(0.83, 0.93, pitN) * smoothstep(0.35, 0.7, noise(q * 1.7 + 5.0));
+    col *= 1.0 - pits * 0.075;
+    col *= 0.99 + 0.02 * noise(q * 90.0);
+    col *= 0.985 + 0.03 * hash(id + 9.0);
 
     vec3 basalt = vec3(0.078, 0.078, 0.084) * (0.8 + 0.45 * fbm(q * 2.2));
     basalt += vec3(0.02, 0.018, 0.015) * smoothstep(0.8, 0.95, noise(q * 26.0));
@@ -171,10 +175,10 @@ export const floorFragment = /* glsl */ `
     // soft cast shadow from a point light: march the light ray through the slab's height
     float occ = 0.0;
     vec2 hit = vec2(0.0);
-    for (int i = 0; i < 9; i++) {
-      float hgt = (float(i) + 0.5) / 9.0 * uSlabH * uBreath;
+    for (int i = 0; i < 36; i++) {
+      float hgt = (float(i) + 0.5) / 36.0 * uSlabH * uBreath;
       vec2 Q = p + (uLight.xz - p) * (hgt / uLight.y);
-      float pen = 0.015 + 0.16 * hgt / uSlabH;
+      float pen = 0.05 + 0.42 * hgt / uSlabH;
       float o = 1.0 - smoothstep(-pen, pen, sdBox(Q, uSlabHalf));
       if (o > occ) { occ = o; hit = Q; }
     }
@@ -288,8 +292,9 @@ export const glassFragment = /* glsl */ `
     viewN = normalize(viewN + vec3(wob, 0.0));
     vec3 inc = normalize(vView);
     float thick = uThickness * (1.0 + bevel * 2.2);
-    float lod = mix(0.0, 2.6, uCore) + bevel * 1.2;
+    float lod = mix(0.4, 1.8, uCore) + bevel * 1.2;
     vec3 refr = vec3(0.0);
+    vec3 wsum = vec3(0.0);
     const int SAMPLES = 6;
     for (int i = 0; i < SAMPLES; i++) {
       float s = float(i) / float(SAMPLES - 1);
@@ -300,17 +305,20 @@ export const glassFragment = /* glsl */ `
       // spread each sample across the spectrum (R → G → B)
       vec3 w = vec3(smoothstep(0.55, 0.0, s), 1.0 - abs(s - 0.5) * 2.0, smoothstep(0.45, 1.0, s));
       refr += c * w;
+      wsum += w;
     }
-    refr /= vec3(2.0, 2.0 + 0.4, 2.0) * 0.85;
-    refr = clamp(refr, 0.0, 1.2);
+    refr /= wsum;
 
     // absorption tint: faintly green-grey glass by day, smoky after hours
-    vec3 tint = mix(vec3(0.955, 0.985, 0.975), vec3(0.86, 0.9, 0.94), uNight);
-    refr *= mix(vec3(1.0), tint, 0.6 + bevel * 0.4);
+    vec3 tint = mix(vec3(0.95, 0.97, 0.965), vec3(0.84, 0.88, 0.92), uNight);
+    refr *= mix(vec3(0.97), tint, 0.55 + bevel * 0.45);
+    // Beer–Lambert: longer paths (grazing faces, bevels) absorb toward a cool grey-green
+    float path = uThickness * (1.0 + bevel * 1.5) / max(NdV, 0.22);
+    refr *= exp(-vec3(0.2, 0.12, 0.11) * path * mix(1.0, 1.6, uNight));
 
     // reflection of an imaginary gallery: bright ceiling, stone walls
     vec3 R = reflect(-V, N);
-    vec3 envDay = mix(vec3(0.84, 0.8, 0.74), vec3(1.0, 0.99, 0.97), smoothstep(-0.1, 0.8, R.y));
+    vec3 envDay = mix(vec3(0.46, 0.44, 0.41), vec3(0.97, 0.96, 0.94), smoothstep(0.05, 0.85, R.y));
     vec3 envNight = mix(vec3(0.02), vec3(0.14, 0.12, 0.1), smoothstep(0.2, 0.9, R.y));
     vec3 env = mix(envDay, envNight, uNight);
     // skylight strip
