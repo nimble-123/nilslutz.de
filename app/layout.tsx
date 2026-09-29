@@ -1,18 +1,28 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Anybody, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
-import { ParticleBackground } from '@/components/ui/particle-background'
 import { GlobalEffects } from '@/components/ui/global-effects'
 import { StructuredData } from '@/components/ui/structured-data'
-import { clsx } from 'clsx'
+import { SmoothScroll } from '@/components/ui/smooth-scroll'
+import { GridOverlay } from '@/components/ui/grid-overlay'
+import { cn } from '@/lib/utils'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({
+// One variable grotesk across weights AND widths (wdth 50-150, wght 100-900)
+const anybody = Anybody({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-anybody',
+  axes: ['wdth'],
+  display: 'swap',
+})
+
+// Mono for small labels, indices and code
+const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-jetbrains',
   display: 'swap',
 })
 
@@ -88,19 +98,23 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn(anybody.variable, jetbrains.variable)}>
       <head>
         <StructuredData />
       </head>
       <body
-        className={clsx(
-          inter.variable,
-          'bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300'
-        )}
+        className="bg-background text-foreground min-h-screen font-sans antialiased"
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {/* Particle Background - Global */}
-          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <a
+            href="#main"
+            className="label bg-signal text-ink fixed top-2 left-2 z-[100] -translate-y-24 px-3 py-2 focus-visible:translate-y-0"
+          >
+            Skip to content
+          </a>
+          <SmoothScroll />
+          {/* Visible grid-thinking: the 12-column poster grid behind everything */}
+          <GridOverlay />
           {/* Global Effects (Matrix Easter Egg) */}
           <GlobalEffects />
           <div className="relative z-10 flex min-h-screen flex-col">{children}</div>

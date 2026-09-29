@@ -1,30 +1,18 @@
-'use client'
-
-import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
-export function AvailabilityBadge() {
-  const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
-
-  // Prevent hydration mismatch by showing light theme until mounted
-  const isDark = mounted && resolvedTheme === 'dark'
-
+export function AvailabilityBadge({ className }: { className?: string }) {
   return (
-    <div
+    <p
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-        isDark ? 'border-green-900/50 bg-green-900/30 text-green-300' : 'border-zinc-200 bg-zinc-100 text-zinc-900'
+        'bg-foreground text-background inline-flex items-center gap-3 px-4 py-3 text-sm font-bold tracking-wide uppercase',
+        className
       )}
     >
-      <span className={cn('h-2 w-2 rounded-full', isDark ? 'bg-green-400' : 'bg-emerald-500')} aria-hidden="true" />
+      <span className="relative flex size-2.5" aria-hidden="true">
+        <span className="bg-signal absolute inset-0 animate-ping opacity-60 motion-reduce:animate-none" />
+        <span className="bg-signal relative size-2.5" />
+      </span>
       Open for Inhouse & Consulting (BTP / Architecture)
-    </div>
+    </p>
   )
 }

@@ -2,11 +2,12 @@
 
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 
 export function ModeToggle({ className }: { className?: string }) {
-  const { setTheme, theme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -15,22 +16,36 @@ export function ModeToggle({ className }: { className?: string }) {
     setMounted(true)
   }, [])
 
-  if (!mounted) {
-    return <div className={cn('h-9 w-9', className)} /> // Placeholder
-  }
+  const isDark = mounted && resolvedTheme === 'dark'
 
   return (
     <button
+      type="button"
       className={cn(
-        'hover:bg-accent hover:text-accent-foreground relative rounded-md p-2 transition-colors',
+        'press text-foreground hover:bg-foreground hover:text-background relative inline-flex size-11 items-center justify-center',
         className
       )}
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label="Toggle theme"
+      aria-pressed={isDark}
+      title={isDark ? 'Paper (light)' : 'Inverted poster (dark)'}
     >
-      <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-      <Moon className="absolute top-2 left-2 h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-      <span className="sr-only">Toggle theme</span>
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.span
+          key={isDark ? 'moon' : 'sun'}
+          initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+          transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+          className="inline-flex"
+        >
+          {isDark ? (
+            <Moon className="size-[18px]" strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <Sun className="size-[18px]" strokeWidth={2} aria-hidden="true" />
+          )}
+        </motion.span>
+      </AnimatePresence>
     </button>
   )
 }

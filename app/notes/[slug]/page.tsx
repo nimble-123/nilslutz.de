@@ -3,7 +3,7 @@ import { Footer } from '@/components/ui/footer'
 import { getNoteBySlug, getNotes } from '@/lib/content'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { Metadata } from 'next'
 import { MDXContent } from '@/components/ui/mdx-content'
@@ -56,42 +56,56 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <article className="mx-auto max-w-2xl">
-          {/* Header */}
-          <div className="mb-12 space-y-6">
-            <Link
-              href="/notes"
-              className="text-muted-foreground hover:text-primary mb-4 inline-flex items-center text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              All Notes
-            </Link>
-
-            <div className="space-y-4">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4" />
-                <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
-              </div>
-              <h1 className="text-foreground text-3xl font-bold tracking-tight md:text-4xl">{note.title}</h1>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                {note.tags &&
-                  note.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="bg-muted text-muted-foreground inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-              </div>
+      <main id="main" className="flex-1">
+        <article className="shell grid-poster gap-y-10 pt-10 md:pt-16">
+          {/* Meta rail */}
+          <aside className="col-span-4 md:col-span-3">
+            <div className="space-y-6 md:sticky md:top-24">
+              <Link
+                href="/notes"
+                className="label hover:text-signal -ml-1 inline-flex h-11 items-center gap-2 px-1 transition-colors duration-150"
+              >
+                <ArrowLeft className="size-4" strokeWidth={2} aria-hidden="true" />
+                All Notes
+              </Link>
+              <dl className="space-y-4">
+                <div className="pt-3 shadow-[0_-1px_0_var(--rule)]">
+                  <dt className="label text-muted-foreground">Published</dt>
+                  <dd className="mt-1 text-sm font-semibold tabular-nums">
+                    <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
+                  </dd>
+                </div>
+                {note.tags && note.tags.length > 0 && (
+                  <div className="pt-3 shadow-[0_-1px_0_var(--rule)]">
+                    <dt className="label text-muted-foreground">Tags</dt>
+                    <dd className="mt-2 flex flex-wrap gap-1.5">
+                      {note.tags.map((tag) => (
+                        <span key={tag} className="label px-1.5 py-0.5 shadow-[inset_0_0_0_1px_var(--rule)]">
+                          {tag}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                )}
+              </dl>
             </div>
-          </div>
+          </aside>
 
-          {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
-            <MDXContent source={note.content} />
+          <div className="col-span-4 md:col-span-9">
+            <header className="mb-10 pb-8 shadow-[0_2px_0_var(--foreground)] md:mb-14">
+              <p className="label text-signal mb-4">(Note)</p>
+              <h1 className="text-[clamp(2.2rem,5.4vw,5.2rem)] leading-[0.95] font-black tracking-[-0.02em] [font-stretch:112.5%]">
+                {note.title}
+              </h1>
+              {note.summary && (
+                <p className="text-muted-foreground mt-6 max-w-[56ch] text-lg leading-snug md:text-xl">
+                  {note.summary}
+                </p>
+              )}
+            </header>
+            <div className="prose prose-poster">
+              <MDXContent source={note.content} />
+            </div>
           </div>
         </article>
       </main>
