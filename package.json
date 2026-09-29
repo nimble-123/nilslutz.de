@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
-    "@rive-app/react-canvas": "^4.35.0",
+    "@rive-app/react-canvas-lite": "^4.35.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Layout, Fit, Alignment, RuntimeLoader, useRive, useStateMachineInput } from '@rive-app/react-canvas'
+import { Layout, Fit, Alignment, RuntimeLoader, useRive, useStateMachineInput } from '@rive-app/react-canvas-lite'
 
 // Self-hosted runtime: cdn.rive.app / jsdelivr are not needed (and not reachable everywhere)
 RuntimeLoader.setWasmUrl('/rive/rive.wasm')
