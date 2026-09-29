@@ -1,9 +1,10 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { PageShell } from '@/components/ui/page-header'
 import { getNoteBySlug, getNotes } from '@/lib/content'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { Metadata } from 'next'
 import { MDXContent } from '@/components/ui/mdx-content'
@@ -56,45 +57,45 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <article className="mx-auto max-w-2xl">
-          {/* Header */}
-          <div className="mb-12 space-y-6">
+      <PageShell>
+        <article className="mx-auto max-w-[46rem] pb-12">
+          <header className="pt-8 pb-10 md:pt-14 md:pb-14">
             <Link
               href="/notes"
-              className="text-muted-foreground hover:text-primary mb-4 inline-flex items-center text-sm font-medium transition-colors"
+              className="eyebrow text-muted-foreground hover:text-foreground -ml-1 inline-flex h-10 items-center gap-2 px-1 transition-colors duration-150"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
               All Notes
             </Link>
+            <p className="text-muted-foreground mt-8 font-mono text-xs tabular-nums">
+              <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
+              {note.tags && note.tags.length > 0 && (
+                <>
+                  <span className="text-clay mx-2">/</span>
+                  {note.tags.map((t) => `#${t.replace(/\s+/g, '')}`).join('  ')}
+                </>
+              )}
+            </p>
+            <h1 className="opsz-display mt-4 text-[2.4rem] leading-[0.98] font-light tracking-[-0.03em] md:text-[3.75rem]">
+              {note.title}
+            </h1>
+            <p className="text-muted-foreground mt-5 text-lg leading-snug md:text-xl">{note.summary}</p>
+            <svg aria-hidden="true" viewBox="0 0 1000 24" preserveAspectRatio="none" className="mt-10 h-5 w-full">
+              <path
+                d="M0 12 C 120 4, 220 20, 340 12 S 560 4, 680 13 S 880 20, 1000 10"
+                fill="none"
+                className="stroke-oxide"
+                strokeWidth={1.25}
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+          </header>
 
-            <div className="space-y-4">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4" />
-                <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
-              </div>
-              <h1 className="text-foreground text-3xl font-bold tracking-tight md:text-4xl">{note.title}</h1>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                {note.tags &&
-                  note.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="bg-muted text-muted-foreground inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
+          <div className="prose prose-lg prose-tide max-w-none">
             <MDXContent source={note.content} />
           </div>
         </article>
-      </main>
+      </PageShell>
       <Footer />
     </>
   )

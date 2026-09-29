@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { PageShell } from '@/components/ui/page-header'
 import { getCaseStudyBySlug, getCaseStudies } from '@/lib/content'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -52,63 +53,60 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
     notFound()
   }
 
+  const facts = [
+    { label: 'Role', value: study.role },
+    { label: 'Period', value: study.period },
+    { label: 'Stack', value: study.stack.join(', ') },
+  ]
+
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <article className="mx-auto max-w-3xl">
-          {/* Header */}
-          <div className="mb-12 space-y-8 border-b pb-12">
-            <Link
-              href="/work"
-              className="text-muted-foreground hover:text-primary inline-flex items-center text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Case Studies
-            </Link>
-
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
+      <PageShell>
+        <article className="pb-12">
+          <header className="border-border grid grid-cols-12 gap-x-6 border-b pt-8 pb-12 md:pt-14 md:pb-16">
+            <div className="col-span-12">
+              <Link
+                href="/work"
+                className="eyebrow text-muted-foreground hover:text-foreground -ml-1 inline-flex h-10 items-center gap-2 px-1 transition-colors duration-150"
+              >
+                <ArrowLeft className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                Back to Case Studies
+              </Link>
+            </div>
+            <div className="col-span-12 mt-6 lg:col-span-9">
+              <p className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-[var(--slate)]">
                 {study.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-primary/10 text-primary inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold"
-                  >
-                    {tag}
-                  </span>
+                  <span key={tag}>#{tag.replace(/\s+/g, '')}</span>
                 ))}
-              </div>
-              <h1 className="text-foreground text-4xl font-bold tracking-tight md:text-5xl">{study.title}</h1>
-              <p className="text-muted-foreground text-xl leading-relaxed">{study.summary}</p>
+              </p>
+              <h1 className="opsz-display mt-4 text-[2.6rem] leading-[0.95] font-light tracking-[-0.035em] md:text-[5rem]">
+                {study.title}
+              </h1>
+              <p className="text-muted-foreground mt-6 max-w-3xl text-lg leading-snug md:text-[1.35rem]">
+                {study.summary}
+              </p>
             </div>
 
-            {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-6 text-sm md:grid-cols-4">
-              <div>
-                <p className="text-foreground mb-1 font-semibold">Role</p>
-                <p className="text-muted-foreground">{study.role}</p>
-              </div>
-              <div>
-                <p className="text-foreground mb-1 font-semibold">Period</p>
-                <p className="text-muted-foreground">{study.period}</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-foreground mb-1 font-semibold">Tech Stack</p>
-                <p className="text-muted-foreground">{study.stack.join(', ')}</p>
-              </div>
-            </div>
+            <dl className="col-span-12 mt-10 grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-4">
+              {facts.map((f) => (
+                <div key={f.label} className={f.label === 'Stack' ? 'col-span-2' : undefined}>
+                  <dt className="eyebrow text-muted-foreground">{f.label}</dt>
+                  <dd className="mt-1.5 text-[1.05rem] leading-snug">{f.value}</dd>
+                </div>
+              ))}
+            </dl>
 
-            {/* Links */}
-            {study.links && (
-              <div className="flex gap-4">
+            {study.links && (study.links.github || study.links.demo) && (
+              <div className="col-span-12 mt-8 flex flex-wrap gap-3">
                 {study.links.github && (
                   <a
                     href={study.links.github}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center text-sm font-medium hover:underline"
+                    className="shadow-border hover:shadow-border-hover inline-flex h-10 items-center gap-2 rounded-full pr-4 pl-3.5 font-mono text-xs transition-[box-shadow,scale] duration-150 ease-out active:scale-[0.96]"
                   >
-                    <Github className="mr-2 h-4 w-4" /> View Code
+                    <Github className="size-4" strokeWidth={1.5} aria-hidden="true" /> View Code
                   </a>
                 )}
                 {study.links.demo && (
@@ -116,36 +114,35 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                     href={study.links.demo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center text-sm font-medium hover:underline"
+                    className="shadow-border hover:shadow-border-hover inline-flex h-10 items-center gap-2 rounded-full pr-4 pl-3.5 font-mono text-xs transition-[box-shadow,scale] duration-150 ease-out active:scale-[0.96]"
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" /> Live Demo
+                    <ExternalLink className="size-4" strokeWidth={1.5} aria-hidden="true" /> Live Demo
                   </a>
                 )}
               </div>
             )}
-          </div>
+          </header>
 
-          {/* Metrics */}
-          {study.metrics && study.metrics.length > 0 && (
-            <div className="bg-secondary/30 border-border/50 mb-12 rounded-lg border p-6">
-              <h3 className="text-foreground mb-4 font-semibold">Key Outcomes</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {study.metrics.map((metric, idx) => (
-                  <div key={idx} className="flex items-start">
-                    <span className="bg-primary mt-2 mr-2 h-1.5 w-1.5 flex-shrink-0 rounded-full" />
-                    <span className="text-sm font-medium">{metric}</span>
-                  </div>
-                ))}
-              </div>
+          <div className="grid grid-cols-12 gap-x-6 pt-12 md:pt-16">
+            {study.metrics && study.metrics.length > 0 && (
+              <aside className="col-span-12 mb-12 lg:sticky lg:top-24 lg:col-span-3 lg:mb-0 lg:self-start">
+                <h2 className="eyebrow text-muted-foreground">Key Outcomes</h2>
+                <ul className="mt-4 space-y-3">
+                  {study.metrics.map((metric, idx) => (
+                    <li key={idx} className="border-border flex items-baseline gap-3 border-t pt-3">
+                      <span className="text-oxide font-mono text-xs tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                      <span className="opsz-headline text-lg leading-tight">{metric.replace(/&lt;/g, '<')}</span>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            )}
+            <div className="prose prose-lg prose-tide col-span-12 max-w-none lg:col-span-8 lg:col-start-5">
+              <MDXContent source={study.content} />
             </div>
-          )}
-
-          {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
-            <MDXContent source={study.content} />
           </div>
         </article>
-      </main>
+      </PageShell>
       <Footer />
     </>
   )

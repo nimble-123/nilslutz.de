@@ -1,20 +1,36 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Fraunces, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
-import { ParticleBackground } from '@/components/ui/particle-background'
 import { GlobalEffects } from '@/components/ui/global-effects'
 import { StructuredData } from '@/components/ui/structured-data'
-import { clsx } from 'clsx'
+import { SmoothScroll } from '@/components/ui/smooth-scroll'
+import { cn } from '@/lib/utils'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-fraunces',
   display: 'swap',
+  axes: ['opsz', 'SOFT', 'WONK'],
+  style: ['normal', 'italic'],
 })
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  variable: '--font-plex-mono',
+  display: 'swap',
+  weight: ['400', '500'],
+})
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#eef0ee' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f1417' },
+  ],
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nilslutz.de'),
@@ -88,22 +104,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn(fraunces.variable, plexMono.variable, 'antialiased')}>
       <head>
         <StructuredData />
       </head>
-      <body
-        className={clsx(
-          inter.variable,
-          'bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300'
-        )}
-      >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {/* Particle Background - Global */}
-          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
+      <body className="bg-background text-foreground min-h-screen font-serif">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+          <SmoothScroll />
           {/* Global Effects (Matrix Easter Egg) */}
           <GlobalEffects />
-          <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+          <div className="relative flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

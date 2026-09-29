@@ -99,3 +99,23 @@ export async function getNoteBySlug(slug: string): Promise<Note | null> {
   const all = await getNotes()
   return all.find((p) => p.slug === slug) || null
 }
+
+function periodYears(period: string | undefined): number[] {
+  return ((period ?? '').match(/\d{4}/g) ?? []).map(Number)
+}
+
+/** Latest year mentioned in a period string ('2018-2020' → 2020, '2024' → 2024). 0 if none. */
+export function periodEndYear(period: string | undefined): number {
+  const years = periodYears(period)
+  return years.length ? Math.max(...years) : 0
+}
+
+/** Case studies ordered as a timeline: most recent period first, then latest start. */
+export async function getCaseStudiesByRecency(): Promise<CaseStudy[]> {
+  const all = await getCaseStudies()
+  const start = (p: string) => {
+    const years = periodYears(p)
+    return years.length ? Math.min(...years) : 0
+  }
+  return [...all].sort((a, b) => periodEndYear(b.period) - periodEndYear(a.period) || start(b.period) - start(a.period))
+}

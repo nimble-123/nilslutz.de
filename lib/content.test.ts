@@ -1,5 +1,30 @@
 import { describe, it, expect } from 'vitest'
-import { getCaseStudies, getCaseStudyBySlug, getNotes, getNoteBySlug } from '@/lib/content'
+import {
+  getCaseStudies,
+  getCaseStudiesByRecency,
+  getCaseStudyBySlug,
+  getNotes,
+  getNoteBySlug,
+  periodEndYear,
+} from '@/lib/content'
+
+describe('periodEndYear', () => {
+  it('returns the latest year in a range or single year', () => {
+    expect(periodEndYear('2018-2020')).toBe(2020)
+    expect(periodEndYear('2024')).toBe(2024)
+    expect(periodEndYear(undefined)).toBe(0)
+    expect(periodEndYear('ongoing')).toBe(0)
+  })
+})
+
+describe('getCaseStudiesByRecency', () => {
+  it('orders case studies by most recent period first', async () => {
+    const studies = await getCaseStudiesByRecency()
+    const years = studies.map((s) => periodEndYear(s.period))
+    expect(years).toEqual([...years].sort((a, b) => b - a))
+    expect(studies.length).toBe((await getCaseStudies()).length)
+  })
+})
 
 describe('getCaseStudies', () => {
   it('returns a non-empty list with the expected shape', async () => {

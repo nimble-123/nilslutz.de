@@ -15,8 +15,8 @@ export default function DatenschutzPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="prose dark:prose-invert mx-auto max-w-2xl">
+      <main className="grain w-full flex-1 px-4 pt-10 pb-12 md:px-8 md:pt-20">
+        <div className="prose prose-tide prose-h1:text-5xl prose-h1:font-light prose-h1:tracking-[-0.035em] md:prose-h1:text-6xl mx-auto max-w-2xl">
           <h1>Datenschutzerklärung</h1>
 
           <h2>1. Datenschutz auf einen Blick</h2>
