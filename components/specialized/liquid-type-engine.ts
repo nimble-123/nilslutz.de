@@ -288,14 +288,15 @@ export class LiquidTypeEngine {
 
   render(dt: number, scrollVelocity: number) {
     const steps = Math.min(3, Math.max(1, Math.round(dt * 60)))
-    const gain = this.opts.coarse ? 0.55 : 0.42
+    // phones: narrower sheet in uv space and scroll-by-swipe, so both couplings are gentler
+    const gain = this.opts.coarse ? 0.38 : 0.42
     const vel = this.pendingVel.clone().multiplyScalar(gain / steps)
     const maxV = 0.02
     if (vel.length() > maxV) vel.setLength(maxV)
     this.pendingVel.set(0, 0)
 
     const u = this.simMaterial.uniforms
-    u.uScroll.value = Math.max(-80, Math.min(80, scrollVelocity))
+    u.uScroll.value = Math.max(-80, Math.min(80, scrollVelocity)) * (this.opts.coarse ? 0.15 : 1)
     if (Math.abs(scrollVelocity) > 0.5) this.lastInput = performance.now()
 
     this.quad.material = this.simMaterial

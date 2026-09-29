@@ -216,7 +216,7 @@ export function PosterSequence({
                 </li>
               ))}
             </ol>
-            <p className="label text-muted-foreground col-span-4 self-end md:col-span-3 md:col-start-10 md:text-right">
+            <p className="label text-muted-foreground col-span-4 self-end motion-reduce:hidden md:col-span-3 md:col-start-10 md:text-right">
               Scroll to move through the posters →
             </p>
           </div>
