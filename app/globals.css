@@ -1,8 +1,14 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* next-themes is class based: `.dark` on <html> switches to the "night survey" palette */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-display);
+  --font-display: var(--font-grotesk);
+  --font-serif: var(--font-newsreader);
+  --font-mono: var(--font-jetbrains);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -32,178 +38,334 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Strata specials */
+  --color-paper: var(--background);
+  --color-paper-deep: var(--paper-deep);
+  --color-paper-raised: var(--paper-raised);
+  --color-ochre: var(--ochre);
+  --color-ochre-ink: var(--ochre-ink);
+  --color-survey: var(--survey);
+  --color-contour: var(--contour);
+  --color-rule: var(--rule);
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --ease-survey: cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* ─── Day survey (light, primary) ─────────────────────────────────────────── */
 :root {
-  /* Light Theme - Modern Blue/Indigo */
-  --background: #f7f8fa;
-  --foreground: #0b1220;
+  --background: #eee7d8; /* uncoated paper */
+  --foreground: #25241f; /* graphite ink */
 
-  --card: #ffffff;
-  --card-foreground: #0b1220;
+  --card: #f4efe3;
+  --card-foreground: #25241f;
+  --popover: #f6f2e8;
+  --popover-foreground: #25241f;
 
-  --popover: #ffffff;
-  --popover-foreground: #0b1220;
+  --primary: #2b5944; /* survey green */
+  --primary-foreground: #f4efe3;
 
-  --primary: #1e63ff;
-  /* Blue Accent */
-  --primary-foreground: #ffffff;
+  --secondary: #e4dbc8;
+  --secondary-foreground: #25241f;
 
-  --secondary: #e6e8ee;
-  /* Cool Gray Border */
-  --secondary-foreground: #0b1220;
+  --muted: #e6ddca;
+  --muted-foreground: #5a564c;
 
-  --muted: #f7f8fa;
-  --muted-foreground: #5b6474;
+  --accent: #e6d3a8;
+  --accent-foreground: #6e4a10;
 
-  --accent: #e1e6f0;
-  /* Light Blue Tint for hover */
-  --accent-foreground: #1e63ff;
+  --destructive: #a3372a;
+  --destructive-foreground: #f4efe3;
 
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
+  --border: #d3c8b1;
+  --input: #cbbfa6;
+  --ring: #2b5944;
 
-  --border: #e6e8ee;
-  --input: #e6e8ee;
-  --ring: #1e63ff;
+  --paper-deep: #e4dbc8;
+  --paper-raised: #f6f2e8;
+  --ochre: #b8801f;
+  --ochre-ink: #8a5a0e; /* ochre that passes AA as text on paper */
+  --survey: #2b5944;
+  --contour: #9a6a3a;
+  --rule: oklch(0.25 0.01 80 / 0.14);
 
-  --radius: 0.75rem;
+  --radius: 0.375rem;
 
-  /* Gradient Backgrounds */
-  --gradient-start: #e6e8ee;
-  --gradient-end: #d1d5db;
+  /* stratum fills + lithology inks (mirrors components/webgl/strata-block.ts) */
+  --stratum-1: #e2cd9c;
+  --stratum-1-ink: #7a5a2a;
+  --stratum-2: #cf9a48;
+  --stratum-2-ink: #6b4510;
+  --stratum-3: #6f9178;
+  --stratum-3-ink: #1f3a2c;
+  --stratum-4: #5c5a52;
+  --stratum-4-ink: #d8cfbd;
+
+  --shadow-border:
+    0px 0px 0px 1px oklch(0 0 0 / 0.07), 0px 1px 2px -1px oklch(0 0 0 / 0.06), 0px 2px 4px 0px oklch(0 0 0 / 0.04);
+  --shadow-border-hover:
+    0px 0px 0px 1px oklch(0 0 0 / 0.1), 0px 1px 2px -1px oklch(0 0 0 / 0.08), 0px 4px 10px 0px oklch(0 0 0 / 0.06);
+
+  color-scheme: light;
 }
 
+/* ─── Night survey (dark) ─────────────────────────────────────────────────── */
 .dark {
-  /* Dark Theme - Deep & Indigo */
-  --background: #0b1020;
-  --foreground: #eaf0ff;
+  --background: #11150f;
+  --foreground: #e8e1cf;
 
-  --card: #0f1730;
-  --card-foreground: #eaf0ff;
+  --card: #181d15;
+  --card-foreground: #e8e1cf;
+  --popover: #1b2118;
+  --popover-foreground: #e8e1cf;
 
-  --popover: #0f1730;
-  --popover-foreground: #eaf0ff;
+  --primary: #8cc0a3;
+  --primary-foreground: #0f140e;
 
-  --primary: #4c7dff;
-  /* Bright Indigo Accent */
-  --primary-foreground: #ffffff;
+  --secondary: #222a1e;
+  --secondary-foreground: #e8e1cf;
 
-  --secondary: #22304e;
-  --secondary-foreground: #eaf0ff;
+  --muted: #1b2118;
+  --muted-foreground: #a8a291;
 
-  --muted: #0b1020;
-  --muted-foreground: #a7b0c2;
+  --accent: #3a3018;
+  --accent-foreground: #e6b65a;
 
-  --accent: #22304e;
-  --accent-foreground: #4c7dff;
+  --destructive: #e07a6a;
+  --destructive-foreground: #11150f;
 
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
+  --border: #2c3527;
+  --input: #34402e;
+  --ring: #8cc0a3;
 
-  --border: #22304e;
-  --input: #22304e;
-  --ring: #4c7dff;
+  --paper-deep: #0c0f0a;
+  --paper-raised: #1b2118;
+  --ochre: #d9a441;
+  --ochre-ink: #e6b65a;
+  --survey: #8cc0a3;
+  --contour: #c8955a;
+  --rule: oklch(0.95 0.02 90 / 0.12);
 
-  --gradient-start: #1a2340;
-  --gradient-end: #0f1730;
+  --stratum-1: #6d6040;
+  --stratum-1-ink: #c9b27a;
+  --stratum-2: #8a6526;
+  --stratum-2-ink: #e0b060;
+  --stratum-3: #35523f;
+  --stratum-3-ink: #9cc7ad;
+  --stratum-4: #2b2b27;
+  --stratum-4-ink: #77746a;
+
+  --shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
+  --shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 0.14);
+
+  color-scheme: dark;
 }
 
-@layer utilities {
-  .glass {
-    @apply border border-white/20 shadow-xl backdrop-blur-xl dark:border-white/5;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
-  }
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
-  .dark .glass {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.2) 100%);
-  }
+html.lenis,
+html.lenis body {
+  height: auto;
+}
 
-  .glass-card {
-    @apply border border-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl dark:border-white/10;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
-  }
-
-  .dark .glass-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(30, 41, 59, 0.1) 100%);
-  }
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
 }
 
 body {
-  background-attachment: fixed;
-  background-image:
-    radial-gradient(circle at 15% 50%, var(--gradient-start), transparent 25%),
-    radial-gradient(circle at 85% 30%, var(--gradient-end), transparent 25%);
   background-color: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
   font-feature-settings:
     'rlig' 1,
     'calt' 1;
 }
 
-/* Custom Scrollbar for "Nordic clean" feel */
-::-webkit-scrollbar {
-  width: 8px;
+/* Uncoated paper fibre: a fixed, very faint noise layer over everything */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .22 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+.dark body::after {
+  mix-blend-mode: screen;
+  opacity: 0.25;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+p,
+li,
+figcaption,
+blockquote,
+dd {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--ochre) 35%, transparent);
+  color: var(--foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+img {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+.dark img {
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+/* Scrollbar in paper tones */
+::-webkit-scrollbar {
+  width: 10px;
+}
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background-color: var(--border);
+  border: 3px solid var(--background);
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--muted-foreground);
 }
 
-/* Syntax Highlighting - Multiple Themes Support */
+/* ─── Utilities ───────────────────────────────────────────────────────────── */
+@utility marginalia {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility shadow-border {
+  box-shadow: var(--shadow-border);
+}
+
+@utility shadow-border-hover {
+  box-shadow: var(--shadow-border-hover);
+}
+
+/* A faint map graticule for inner pages */
+@utility graticule {
+  background-image:
+    linear-gradient(to right, var(--rule) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-size: 96px 96px;
+  background-position: -1px -1px;
+}
+
+/* Ruled field-journal paper */
+@utility ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(2rem - 1px),
+    var(--rule) calc(2rem - 1px),
+    var(--rule) 2rem
+  );
+}
+
+/* Hero load: elements start hidden and are revealed by the one orchestrated GSAP timeline */
+[data-hero-reveal] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-reveal] {
+    opacity: 1 !important;
+  }
+}
+
+/* ─── Buttons (scale on press, shadows not borders) ───────────────────────── */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 1.125rem;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition-property: scale, background-color, box-shadow, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+  &:active {
+    scale: 0.96;
+  }
+}
+
+/* ─── Code (shiki / rehype-pretty-code) ───────────────────────────────────── */
 code[data-theme*=' '],
 code[data-theme*=' '] span {
   color: var(--shiki-light);
   background-color: var(--shiki-light-bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  code[data-theme*=' '],
-  code[data-theme*=' '] span {
-    color: var(--shiki-dark);
-    background-color: var(--shiki-dark-bg);
-  }
-}
-
-/* Support for next-themes with class strategy */
 .dark code[data-theme*=' '],
 .dark code[data-theme*=' '] span {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
 }
 
-/* Code Block Styling */
 pre {
-  @apply border-border bg-card overflow-x-auto rounded-lg border p-4;
+  overflow-x: auto;
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  background-color: var(--paper-raised) !important;
+  box-shadow: var(--shadow-border);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
 
 pre code {
-  @apply text-sm leading-relaxed;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-family: var(--font-mono), ui-monospace, 'Menlo', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
   display: block;
 }
 
-/* Inline Code */
 :not(pre) > code {
-  @apply bg-secondary/60 text-foreground border-border rounded border px-1.5 py-0.5 text-sm;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-family: var(--font-mono), ui-monospace, 'Menlo', monospace;
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  background-color: color-mix(in oklab, var(--ochre) 14%, transparent);
+  color: var(--foreground);
 }
 
-/* Line Styling */
 code[data-line-numbers] {
   counter-reset: line;
 }
@@ -222,31 +384,192 @@ code[data-line-numbers-max-digits='3'] > [data-line]::before {
   width: 1.75rem;
 }
 
-/* Highlighted Lines */
 [data-highlighted-line] {
-  @apply bg-accent/20 border-primary border-l-2 px-4;
+  background-color: color-mix(in oklab, var(--ochre) 14%, transparent);
+  border-left: 2px solid var(--ochre);
+  padding-inline: 1rem;
 }
 
-/* Highlighted Chars */
 [data-highlighted-chars] {
-  @apply bg-primary/20 border-primary border-b-2;
-  box-shadow: 0 0 0 4px rgb(var(--primary) / 0.1);
+  background-color: color-mix(in oklab, var(--ochre) 20%, transparent);
+  border-bottom: 2px solid var(--ochre);
 }
 
-/* Code Title */
 [data-rehype-pretty-code-title] {
-  @apply bg-muted text-foreground border-border rounded-t-lg border border-b-0 px-4 py-2 text-sm font-medium;
+  @apply marginalia text-muted-foreground rounded-t-md px-4 py-2;
+  background-color: var(--paper-deep);
+  box-shadow: var(--shadow-border);
 }
 
 [data-rehype-pretty-code-title] + pre {
   @apply mt-0 rounded-t-none;
 }
 
-/* Code Caption */
 [data-rehype-pretty-code-caption] {
-  @apply bg-muted text-muted-foreground border-border rounded-b-lg border border-t-0 px-4 py-2 text-xs;
+  @apply marginalia text-muted-foreground px-4 py-2;
 }
 
-pre:has(+ [data-rehype-pretty-code-caption]) {
-  @apply mb-0 rounded-b-none;
+/* ─── Prose in the survey language ────────────────────────────────────────── */
+.prose-strata {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--foreground);
+  font-optical-sizing: auto;
+}
+
+.prose-strata :where(h1, h2, h3, h4) {
+  font-family: var(--font-display);
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-weight: 600;
+}
+
+.prose-strata :where(h1) {
+  font-size: 2rem;
+  margin: 3rem 0 1rem;
+}
+
+.prose-strata :where(h2) {
+  font-size: 1.5rem;
+  margin: 3rem 0 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.prose-strata :where(h3) {
+  font-size: 1.2rem;
+  margin: 2rem 0 0.5rem;
+}
+
+.prose-strata :where(h4) {
+  font-size: 1.05rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.prose-strata :where(p, ul, ol, blockquote, table, pre, figure) {
+  margin: 1.1rem 0;
+}
+
+.prose-strata :where(ul) {
+  list-style: none;
+  padding-left: 1.4rem;
+}
+
+.prose-strata :where(ul > li) {
+  position: relative;
+}
+
+.prose-strata :where(ul > li)::before {
+  content: '';
+  position: absolute;
+  left: -1.1rem;
+  top: 0.75em;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--contour);
+}
+
+.prose-strata :where(ol) {
+  list-style: decimal;
+  padding-left: 1.4rem;
+}
+
+.prose-strata :where(ol > li)::marker {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--muted-foreground);
+}
+
+.prose-strata :where(li) {
+  margin: 0.35rem 0;
+}
+
+.prose-strata :where(a) {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--primary) 40%, transparent);
+  text-underline-offset: 3px;
+  transition-property: text-decoration-color;
+  transition-duration: 150ms;
+}
+
+.prose-strata :where(a):hover {
+  text-decoration-color: var(--primary);
+}
+
+.prose-strata :where(strong) {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.prose-strata :where(blockquote) {
+  border-left: 2px solid var(--ochre);
+  padding-left: 1.1rem;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+.prose-strata :where(hr) {
+  border: 0;
+  border-top: 1px dashed var(--border);
+  margin: 2.5rem 0;
+}
+
+.prose-strata :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  overflow-x: auto;
+}
+
+.prose-strata :where(th) {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--foreground);
+  padding: 0.5rem 0.75rem 0.5rem 0;
+}
+
+.prose-strata :where(td) {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  vertical-align: top;
+}
+
+.prose-strata :where(img) {
+  border-radius: var(--radius);
+}
+
+.prose-strata :where(pre) {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.prose-strata > :first-child {
+  margin-top: 0;
+}
+
+/* Neatline draws in on load (only when motion is welcome) */
+@media (prefers-reduced-motion: no-preference) {
+  [data-neatline-x] {
+    transform: scaleX(0);
+  }
+  [data-neatline-y] {
+    transform: scaleY(0);
+  }
+}
+
+.prose-legal :where(h1) {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  margin: 0 0 2rem;
 }

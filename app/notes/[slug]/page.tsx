@@ -3,7 +3,7 @@ import { Footer } from '@/components/ui/footer'
 import { getNoteBySlug, getNotes } from '@/lib/content'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { Metadata } from 'next'
 import { MDXContent } from '@/components/ui/mdx-content'
@@ -53,45 +53,76 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
     notFound()
   }
 
+  const all = await getNotes()
+  const entry = all.length - all.findIndex((n) => n.slug === slug)
+
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <article className="mx-auto max-w-2xl">
-          {/* Header */}
-          <div className="mb-12 space-y-6">
-            <Link
-              href="/notes"
-              className="text-muted-foreground hover:text-primary mb-4 inline-flex items-center text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              All Notes
-            </Link>
-
-            <div className="space-y-4">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4" />
-                <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
+      <main className="flex-1">
+        <article className="mx-auto max-w-[1400px] px-5 pt-28 md:px-8 md:pt-36">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <aside className="lg:col-span-3">
+              <div className="lg:sticky lg:top-24">
+                <Link
+                  href="/notes"
+                  className="marginalia text-muted-foreground hover:text-foreground -ml-1 inline-flex min-h-10 items-center gap-2 px-1 transition-colors"
+                >
+                  <ArrowLeft className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                  Field journal
+                </Link>
+                <dl className="marginalia mt-6 hidden space-y-3 lg:block">
+                  <div>
+                    <dt className="text-muted-foreground">Entry</dt>
+                    <dd className="text-ochre-ink tabular-nums">No. {String(entry).padStart(2, '0')}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Recorded</dt>
+                    <dd className="tabular-nums">{format(new Date(note.date), 'dd.MM.yyyy')}</dd>
+                  </div>
+                  {note.tags && note.tags.length > 0 && (
+                    <div>
+                      <dt className="text-muted-foreground">Specimens</dt>
+                      <dd>{note.tags.join(' / ')}</dd>
+                    </div>
+                  )}
+                </dl>
               </div>
-              <h1 className="text-foreground text-3xl font-bold tracking-tight md:text-4xl">{note.title}</h1>
+            </aside>
 
-              <div className="flex flex-wrap gap-2 pt-2">
-                {note.tags &&
-                  note.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="bg-muted text-muted-foreground inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+            <div className="min-w-0 lg:col-span-8">
+              <header className="border-b border-[var(--foreground)]/80 pb-10">
+                <p className="marginalia text-muted-foreground lg:hidden">
+                  <span className="text-ochre-ink">No. {String(entry).padStart(2, '0')}</span> ·{' '}
+                  <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
+                </p>
+                <p className="marginalia text-muted-foreground hidden lg:block">
+                  <time dateTime={note.date}>{format(new Date(note.date), 'MMMM d, yyyy')}</time>
+                </p>
+                <h1 className="font-display mt-4 text-[clamp(2.1rem,4.6vw,3.75rem)] leading-[1.0] font-semibold tracking-[-0.035em]">
+                  {note.title}
+                </h1>
+                <p className="text-muted-foreground mt-5 max-w-2xl font-serif text-[1.2rem] leading-snug italic md:text-[1.35rem]">
+                  {note.summary}
+                </p>
+                {note.tags && note.tags.length > 0 && (
+                  <ul className="mt-5 flex flex-wrap gap-2 lg:hidden">
+                    {note.tags.map((tag) => (
+                      <li
+                        key={tag}
+                        className="marginalia text-muted-foreground rounded-[2px] px-1.5 py-0.5 shadow-[0_0_0_1px_var(--rule)]"
+                      >
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </header>
+
+              <div className="prose-strata mt-10 max-w-[44rem]">
+                <MDXContent source={note.content} />
               </div>
             </div>
-          </div>
-
-          {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
-            <MDXContent source={note.content} />
           </div>
         </article>
       </main>

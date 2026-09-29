@@ -2,13 +2,17 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { CaseStudy } from '@/lib/content'
+import { AnimatePresence, motion } from 'motion/react'
+import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TrigPoint } from '@/components/ui/trig-point'
+import type { RegisterItem } from '@/components/specialized/survey-register'
 
 const filters = ['All', 'Architecture', 'CAP', 'RAP', 'Fiori', 'Integration', 'Tooling']
 
-export function CaseStudyList({ items }: { items: CaseStudy[] }) {
+export type ListItem = RegisterItem & { featured?: boolean; metrics?: string[] }
+
+export function CaseStudyList({ items }: { items: ListItem[] }) {
   const [filter, setFilter] = useState('All')
 
   const filteredItems = items.filter((item) => {
@@ -17,66 +21,91 @@ export function CaseStudyList({ items }: { items: CaseStudy[] }) {
   })
 
   return (
-    <div className="space-y-12">
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap justify-center gap-2">
-        {filters.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'rounded-full px-4 py-2 text-sm font-medium transition-all',
-              filter === f
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            )}
-          >
-            {f}
-          </button>
-        ))}
+    <div>
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-2 border-b border-[var(--rule)] pb-4">
+        <span className="marginalia text-muted-foreground mr-3">Filter layer</span>
+        {filters.map((f) => {
+          const on = filter === f
+          return (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              aria-pressed={on}
+              className={cn(
+                'marginalia inline-flex min-h-10 items-center gap-2 rounded-[3px] px-3 transition-[background-color,color,scale] duration-150 ease-out active:scale-[0.96]',
+                on ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn('size-2 rounded-full', on ? 'bg-ochre' : 'shadow-[0_0_0_1px_currentColor]')}
+              />
+              {f}
+            </button>
+          )
+        })}
+        <span className="marginalia text-muted-foreground ml-auto tabular-nums">
+          {String(filteredItems.length).padStart(2, '0')} / {String(items.length).padStart(2, '0')} points
+        </span>
       </div>
 
-      {/* Grid */}
-      <motion.div layout className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <AnimatePresence mode="popLayout">
+      <motion.ol layout className="relative">
+        <AnimatePresence mode="popLayout" initial={false}>
           {filteredItems.map((study) => (
-            <motion.div
+            <motion.li
               key={study.slug}
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className="glass-card group relative flex flex-col justify-between rounded-xl p-6"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8, transition: { duration: 0.15, ease: 'easeOut' } }}
+              transition={{ type: 'spring', duration: 0.35, bounce: 0 }}
+              className="group border-b border-[var(--rule)]"
             >
-              <div className="mb-4 space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {study.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="focus:ring-ring bg-secondary text-secondary-foreground inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+              <Link
+                href={`/work/${study.slug}`}
+                className="grid grid-cols-1 gap-x-10 gap-y-3 py-8 md:grid-cols-12 md:py-10"
+              >
+                <div className="marginalia text-muted-foreground flex items-start gap-3 md:col-span-3 md:flex-col md:gap-1.5">
+                  <span className="text-foreground inline-flex items-center gap-1.5">
+                    <TrigPoint active={study.featured} className="size-3.5" />
+                    {study.point.label}
+                  </span>
+                  <span className="tabular-nums">{study.point.easting}</span>
+                  <span className="tabular-nums">{study.point.northing}</span>
                 </div>
-                <h3 className="group-hover:text-primary text-2xl font-bold tracking-tight transition-colors">
-                  <Link href={`/work/${study.slug}`}>
-                    <span className="absolute inset-0" />
-                    {study.title}
-                  </Link>
-                </h3>
-                <p className="text-muted-foreground line-clamp-3">{study.summary}</p>
-              </div>
-
-              <div className="text-muted-foreground mt-auto flex items-center justify-between border-t pt-4 text-sm">
-                <span>{study.role}</span>
-                <span>{study.period}</span>
-              </div>
-            </motion.div>
+                <div className="md:col-span-9">
+                  <div className="marginalia text-muted-foreground flex flex-wrap gap-x-3">
+                    <span className="tabular-nums">{study.period}</span>
+                    <span>{study.role}</span>
+                  </div>
+                  <h2 className="font-display mt-2 flex items-start gap-2 text-[clamp(1.5rem,2.8vw,2.25rem)] leading-[1.06] font-semibold tracking-[-0.03em]">
+                    <span className="decoration-ochre underline-offset-[6px] group-hover:underline">{study.title}</span>
+                    <ArrowUpRight
+                      className="text-muted-foreground group-hover:text-foreground mt-1 size-5 shrink-0 transition-[color,translate] duration-150 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
+                  </h2>
+                  <p className="text-muted-foreground mt-3 max-w-3xl font-serif text-[1.1rem] leading-snug">
+                    {study.summary}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {study.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="marginalia text-muted-foreground rounded-[2px] px-1.5 py-0.5 shadow-[0_0_0_1px_var(--rule)]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </Link>
+            </motion.li>
           ))}
         </AnimatePresence>
-      </motion.div>
+      </motion.ol>
     </div>
   )
 }

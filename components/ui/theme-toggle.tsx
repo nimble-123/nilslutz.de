@@ -3,10 +3,12 @@
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
+/** Day survey ↔ night survey. Icon swap uses the contextual icon animation (spring, bounce 0). */
 export function ModeToggle({ className }: { className?: string }) {
-  const { setTheme, theme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -15,22 +17,32 @@ export function ModeToggle({ className }: { className?: string }) {
     setMounted(true)
   }, [])
 
-  if (!mounted) {
-    return <div className={cn('h-9 w-9', className)} /> // Placeholder
-  }
+  const isDark = mounted && resolvedTheme === 'dark'
 
   return (
     <button
+      type="button"
       className={cn(
-        'hover:bg-accent hover:text-accent-foreground relative rounded-md p-2 transition-colors',
+        'text-muted-foreground hover:text-foreground relative inline-flex size-10 items-center justify-center rounded-md transition-[color,background-color,scale] duration-150 ease-out hover:bg-[color-mix(in_oklab,var(--foreground)_6%,transparent)] active:scale-[0.96] max-md:size-11',
         className
       )}
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label="Toggle theme"
+      title={isDark ? 'Switch to day survey' : 'Switch to night survey'}
     >
-      <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-      <Moon className="absolute top-2 left-2 h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-      <span className="sr-only">Toggle theme</span>
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.span
+          key={isDark ? 'moon' : 'sun'}
+          initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+          transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+          className="inline-flex"
+          aria-hidden="true"
+        >
+          {isDark ? <Moon className="size-[18px]" strokeWidth={1.5} /> : <Sun className="size-[18px]" strokeWidth={1.5} />}
+        </motion.span>
+      </AnimatePresence>
     </button>
   )
 }

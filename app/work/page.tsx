@@ -2,6 +2,8 @@ import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { getCaseStudies } from '@/lib/content'
 import { CaseStudyList } from '@/components/specialized/case-study-list'
+import { SheetHeader } from '@/components/ui/sheet-header'
+import { surveyPoint } from '@/lib/survey'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -18,21 +20,29 @@ export const metadata: Metadata = {
 
 export default async function WorkPage() {
   const caseStudies = await getCaseStudies()
+  const items = caseStudies.map((cs, i) => ({
+    slug: cs.slug,
+    title: cs.title,
+    summary: cs.summary,
+    period: cs.period,
+    role: cs.role,
+    tags: cs.tags,
+    featured: cs.featured,
+    point: surveyPoint(cs.slug, i, caseStudies.length),
+  }))
 
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-4xl space-y-12">
-          <div className="space-y-4 text-center">
-            <h1 className="text-4xl font-bold tracking-tight">Case Studies</h1>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-              Selected projects demonstrating Clean Core architecture, SAP BTP extensions, and enterprise integration
-              patterns.
-            </p>
-          </div>
-
-          <CaseStudyList items={caseStudies} />
+      <main className="flex-1">
+        <SheetHeader
+          sheet="Sheet 03"
+          kicker="Survey register"
+          title="Case Studies"
+          lede="Selected projects demonstrating Clean Core architecture, SAP BTP extensions, and enterprise integration patterns — each one a fixed survey point."
+        />
+        <div className="mx-auto max-w-[1400px] px-5 pt-10 md:px-8 md:pt-14">
+          <CaseStudyList items={items} />
         </div>
       </main>
       <Footer />

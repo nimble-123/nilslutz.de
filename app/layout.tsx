@@ -1,18 +1,32 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Space_Grotesk, Newsreader, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
-import { ParticleBackground } from '@/components/ui/particle-background'
 import { GlobalEffects } from '@/components/ui/global-effects'
 import { StructuredData } from '@/components/ui/structured-data'
+import { SmoothScroll } from '@/components/ui/smooth-scroll'
 import { clsx } from 'clsx'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({
+// Technical grotesk for display + UI, a text serif for reading, a mono for survey marginalia and code.
+const grotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-grotesk',
+  display: 'swap',
+})
+
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  variable: '--font-newsreader',
+  style: ['normal', 'italic'],
+  display: 'swap',
+})
+
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
   display: 'swap',
 })
 
@@ -88,19 +102,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={clsx(grotesk.variable, newsreader.variable, mono.variable, 'antialiased')}
+      suppressHydrationWarning
+    >
       <head>
         <StructuredData />
       </head>
       <body
-        className={clsx(
-          inter.variable,
-          'bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300'
-        )}
+        className="bg-background text-foreground min-h-screen font-sans antialiased"
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {/* Particle Background - Global */}
-          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+          <SmoothScroll />
           {/* Global Effects (Matrix Easter Egg) */}
           <GlobalEffects />
           <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
