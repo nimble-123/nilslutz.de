@@ -253,8 +253,8 @@ export default function UsesPage() {
           ))}
 
           <p className="text-muted-foreground max-w-2xl font-serif text-lg leading-snug md:ml-[25%]">
-            <strong className="text-foreground font-semibold">Note:</strong> This list reflects my personal preferences. I
-            update it occasionally when my setup changes.
+            <strong className="text-foreground font-semibold">Note:</strong> This list reflects my personal preferences.
+            I update it occasionally when my setup changes.
           </p>
         </div>
       </main>

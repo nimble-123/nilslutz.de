@@ -159,9 +159,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
               </aside>
             )}
             <div
-              className={
-                hasMetrics ? 'min-w-0 lg:col-span-8 lg:col-start-5' : 'min-w-0 lg:col-span-8 lg:col-start-3'
-              }
+              className={hasMetrics ? 'min-w-0 lg:col-span-8 lg:col-start-5' : 'min-w-0 lg:col-span-8 lg:col-start-3'}
             >
               <div className="prose-strata max-w-[46rem]">
                 <MDXContent source={study.content} />

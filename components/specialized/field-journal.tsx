@@ -6,15 +6,15 @@ import { ScrubRule } from '@/components/ui/scrub-rule'
 
 export type JournalEntry = Pick<Note, 'slug' | 'title' | 'summary' | 'date' | 'tags'> & { entry: number }
 
-/** Notes as a field journal: ruled paper, an ochre margin rule, dated entries. */
+/** Notes as a field journal: a ledger of dated entries behind an ochre margin rule. */
 export function FieldJournal({ entries, headingLevel = 3 }: { entries: JournalEntry[]; headingLevel?: 2 | 3 }) {
   const Heading = headingLevel === 2 ? 'h2' : 'h3'
   return (
     <div className="relative">
       <ScrubRule className="bg-ochre/80 absolute inset-y-0 left-[5.5rem] w-px md:left-[9.5rem]" />
-      <ol className="ruled">
+      <ol className="border-b border-[var(--rule)]">
         {entries.map((n) => (
-          <li key={n.slug} className="group relative">
+          <li key={n.slug} className="group relative border-t border-[var(--rule)]">
             <Link
               href={`/notes/${n.slug}`}
               className="grid grid-cols-[5.5rem_1fr] gap-x-5 py-8 md:grid-cols-[9.5rem_1fr] md:gap-x-10 md:py-10"

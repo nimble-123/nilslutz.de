@@ -284,17 +284,6 @@ img {
   background-position: -1px -1px;
 }
 
-/* Ruled field-journal paper */
-@utility ruled {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(2rem - 1px),
-    var(--rule) calc(2rem - 1px),
-    var(--rule) 2rem
-  );
-}
-
 /* Hero load: elements start hidden and are revealed by the one orchestrated GSAP timeline */
 [data-hero-reveal] {
   opacity: 0;

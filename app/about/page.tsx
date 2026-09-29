@@ -149,10 +149,7 @@ export default function AboutPage() {
             <ol>
               {experience.map((item, index) => (
                 <li key={index} className="grid grid-cols-[3.5rem_1fr] gap-x-5 md:grid-cols-[5rem_1fr] md:gap-x-8">
-                  <StrataSwatch
-                    pattern={patterns[index % patterns.length]}
-                    className="h-full w-full"
-                  />
+                  <StrataSwatch pattern={patterns[index % patterns.length]} className="h-full w-full" />
                   <div
                     className="border-b border-[var(--rule)] py-5"
                     style={{ minHeight: `${Math.max(6, item.years * 3.2)}rem` }}

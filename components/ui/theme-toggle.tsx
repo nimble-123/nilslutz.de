@@ -40,7 +40,11 @@ export function ModeToggle({ className }: { className?: string }) {
           className="inline-flex"
           aria-hidden="true"
         >
-          {isDark ? <Moon className="size-[18px]" strokeWidth={1.5} /> : <Sun className="size-[18px]" strokeWidth={1.5} />}
+          {isDark ? (
+            <Moon className="size-[18px]" strokeWidth={1.5} />
+          ) : (
+            <Sun className="size-[18px]" strokeWidth={1.5} />
+          )}
         </motion.span>
       </AnimatePresence>
     </button>

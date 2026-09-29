@@ -93,7 +93,7 @@ export function TerrainHero() {
       {webgl === 'none' && (
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-[url('/strata/hero-poster.webp')] bg-cover bg-center opacity-90"
+          className="absolute inset-0 -z-10 bg-[url('/strata/hero-poster.webp')] bg-cover bg-center opacity-90 dark:opacity-35 dark:invert"
         />
       )}
 

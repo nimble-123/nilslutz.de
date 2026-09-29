@@ -174,8 +174,8 @@ const LAYERS: Layer[] = [
 
 const LIGHT_COLORS = ['#e2cd9c', '#cf9a48', '#6f9178', '#5c5a52']
 const LIGHT_PATTERN = ['#7a5a2a', '#6b4510', '#1f3a2c', '#d8cfbd']
-const DARK_COLORS = ['#6d6040', '#8a6526', '#35523f', '#2b2b27']
-const DARK_PATTERN = ['#c9b27a', '#e0b060', '#9cc7ad', '#77746a']
+const DARK_COLORS = ['#6d6040', '#8a6526', '#35523f', '#3a3933']
+const DARK_PATTERN = ['#c9b27a', '#e0b060', '#9cc7ad', '#908c7f']
 
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
