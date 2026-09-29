@@ -15,8 +15,8 @@ export default function ImpressumPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="prose dark:prose-invert mx-auto max-w-2xl">
+      <main id="main" className="flex-1 px-4 pt-12 pb-24 md:px-10 md:pt-20">
+        <div className="prose prose-signal prose-h1:text-6xl md:prose-h1:text-7xl mx-auto max-w-2xl">
           <h1>Impressum</h1>
 
           <h2>Angaben gemäß § 5 TMG</h2>

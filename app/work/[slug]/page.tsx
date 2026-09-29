@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { getCaseStudyBySlug, getCaseStudies } from '@/lib/content'
+import { decodeEntities } from '@/lib/signal-layout'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Github, ExternalLink } from 'lucide-react'
@@ -52,63 +53,58 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
     notFound()
   }
 
+  const all = await getCaseStudies()
+  const index = all.findIndex((s) => s.slug === slug) + 1
+
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <article className="mx-auto max-w-3xl">
-          {/* Header */}
-          <div className="mb-12 space-y-8 border-b pb-12">
+      <main id="main" className="flex-1 px-4 pt-10 pb-24 md:px-10 md:pt-16">
+        <article className="mx-auto max-w-6xl">
+          <header className="border-hairline border-b pb-12">
             <Link
               href="/work"
-              className="text-muted-foreground hover:text-primary inline-flex items-center text-sm font-medium transition-colors"
+              className="label-mono text-muted-foreground hover:text-foreground -ml-1 inline-flex h-11 items-center gap-2 px-1 transition-colors duration-150"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
               Back to Case Studies
             </Link>
 
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {study.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-primary/10 text-primary inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <h1 className="text-foreground text-4xl font-bold tracking-tight md:text-5xl">{study.title}</h1>
-              <p className="text-muted-foreground text-xl leading-relaxed">{study.summary}</p>
-            </div>
+            <p className="label-mono text-muted-foreground mt-8 flex items-center gap-3">
+              <span className="text-sodium tabular-nums">CS·{String(index).padStart(2, '0')}</span>
+              <span className="bg-hairline h-px w-8" aria-hidden="true" />
+              {study.tags.join(' · ')}
+            </p>
+            <h1 className="mt-6 max-w-5xl font-serif text-5xl leading-[0.95] tracking-[-0.02em] md:text-8xl">
+              {study.title}
+            </h1>
+            <p className="text-foreground/75 mt-8 max-w-3xl text-lg leading-relaxed md:text-xl">{study.summary}</p>
 
-            {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-6 text-sm md:grid-cols-4">
-              <div>
-                <p className="text-foreground mb-1 font-semibold">Role</p>
-                <p className="text-muted-foreground">{study.role}</p>
+            <dl className="border-hairline mt-12 grid grid-cols-2 border-t md:grid-cols-4">
+              <div className="border-hairline border-r py-5 pr-4">
+                <dt className="label-mono text-muted-foreground/70">Role</dt>
+                <dd className="mt-2 text-sm">{study.role}</dd>
               </div>
-              <div>
-                <p className="text-foreground mb-1 font-semibold">Period</p>
-                <p className="text-muted-foreground">{study.period}</p>
+              <div className="border-hairline py-5 pl-4 md:border-r md:pr-4">
+                <dt className="label-mono text-muted-foreground/70">Period</dt>
+                <dd className="mt-2 text-sm tabular-nums">{study.period}</dd>
               </div>
-              <div className="col-span-2">
-                <p className="text-foreground mb-1 font-semibold">Tech Stack</p>
-                <p className="text-muted-foreground">{study.stack.join(', ')}</p>
+              <div className="border-hairline col-span-2 border-t py-5 md:border-t-0 md:pl-4">
+                <dt className="label-mono text-muted-foreground/70">Tech Stack</dt>
+                <dd className="mt-2 text-sm">{study.stack.join(', ')}</dd>
               </div>
-            </div>
+            </dl>
 
-            {/* Links */}
             {study.links && (
-              <div className="flex gap-4">
+              <div className="mt-6 flex gap-6">
                 {study.links.github && (
                   <a
                     href={study.links.github}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center text-sm font-medium hover:underline"
+                    className="label-mono text-sodium inline-flex h-11 items-center gap-2 hover:underline"
                   >
-                    <Github className="mr-2 h-4 w-4" /> View Code
+                    <Github className="size-4" strokeWidth={1.5} aria-hidden="true" /> View Code
                   </a>
                 )}
                 {study.links.demo && (
@@ -116,33 +112,34 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                     href={study.links.demo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center text-sm font-medium hover:underline"
+                    className="label-mono text-sodium inline-flex h-11 items-center gap-2 hover:underline"
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" /> Live Demo
+                    <ExternalLink className="size-4" strokeWidth={1.5} aria-hidden="true" /> Live Demo
                   </a>
                 )}
               </div>
             )}
-          </div>
+          </header>
 
-          {/* Metrics */}
-          {study.metrics && study.metrics.length > 0 && (
-            <div className="bg-secondary/30 border-border/50 mb-12 rounded-lg border p-6">
-              <h3 className="text-foreground mb-4 font-semibold">Key Outcomes</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {study.metrics.map((metric, idx) => (
-                  <div key={idx} className="flex items-start">
-                    <span className="bg-primary mt-2 mr-2 h-1.5 w-1.5 flex-shrink-0 rounded-full" />
-                    <span className="text-sm font-medium">{metric}</span>
-                  </div>
-                ))}
-              </div>
+          <div className="grid gap-12 pt-12 md:grid-cols-12 md:pt-16">
+            {study.metrics && study.metrics.length > 0 && (
+              <aside className="md:col-span-3">
+                <div className="md:sticky md:top-28">
+                  <h2 className="label-mono text-muted-foreground mb-4">Key Outcomes</h2>
+                  <ul className="border-hairline border-t">
+                    {study.metrics.map((metric) => (
+                      <li key={metric} className="border-hairline flex items-baseline gap-3 border-b py-3.5">
+                        <span className="bg-sodium inline-block size-1.5 shrink-0 rounded-full" aria-hidden="true" />
+                        <span className="text-foreground/90 text-sm tabular-nums">{decodeEntities(metric)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </aside>
+            )}
+            <div className="prose prose-signal max-w-none md:col-span-8 md:col-start-5">
+              <MDXContent source={study.content} />
             </div>
-          )}
-
-          {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
-            <MDXContent source={study.content} />
           </div>
         </article>
       </main>

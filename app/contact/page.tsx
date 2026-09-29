@@ -1,8 +1,9 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { AvailabilityBadge } from '@/components/ui/availability-badge'
+import { PageHeader } from '@/components/ui/page-header'
 import { profile } from '@/content/profile'
-import { Mail, Linkedin, Github } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -16,54 +17,56 @@ export const metadata: Metadata = {
   },
 }
 
+const channels = [
+  { code: 'CH·01', name: 'Email', hint: 'Send me a message', href: `mailto:${profile.socials.email}`, external: false },
+  { code: 'CH·02', name: 'LinkedIn', hint: 'Connect professionally', href: profile.socials.linkedin, external: true },
+  { code: 'CH·03', name: 'GitHub', hint: 'Check my code', href: profile.socials.github, external: true },
+]
+
 export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-2xl space-y-12 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Get in Touch</h1>
-          <p className="text-muted-foreground text-xl">
-            Interested in robust SAP BTP architectures or Clean Core strategies?
-          </p>
+      <main id="main" className="flex-1 px-4 pt-12 pb-24 md:px-10 md:pt-20">
+        <div className="mx-auto max-w-6xl">
+          <PageHeader
+            code="05"
+            channel="Contact"
+            title={
+              <>
+                Get in <em className="text-sodium">touch</em>
+              </>
+            }
+            lede="Interested in robust SAP BTP architectures or Clean Core strategies?"
+          >
+            <div className="mt-8">
+              <h2 className="sr-only">Current Availability</h2>
+              <AvailabilityBadge />
+            </div>
+          </PageHeader>
 
-          <div className="glass-card rounded-xl p-8 text-center">
-            <h2 className="mb-4 text-lg font-semibold">Current Availability</h2>
-            <AvailabilityBadge />
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <a
-              href={`mailto:${profile.socials.email}`}
-              className="glass-card group flex flex-col items-center rounded-xl p-6 transition-transform hover:scale-[1.02]"
-            >
-              <Mail className="text-primary mb-4 h-8 w-8 transition-transform group-hover:scale-110" />
-              <span className="font-semibold">Email</span>
-              <span className="text-muted-foreground text-sm">Send me a message</span>
-            </a>
-
-            <a
-              href={profile.socials.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-card group flex flex-col items-center rounded-xl p-6 transition-transform hover:scale-[1.02]"
-            >
-              <Linkedin className="mb-4 h-8 w-8 text-[#0077b5] transition-transform group-hover:scale-110" />
-              <span className="font-semibold">LinkedIn</span>
-              <span className="text-muted-foreground text-sm">Connect professionally</span>
-            </a>
-
-            <a
-              href={profile.socials.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-card group flex flex-col items-center rounded-xl p-6 transition-transform hover:scale-[1.02]"
-            >
-              <Github className="text-foreground mb-4 h-8 w-8 transition-transform group-hover:scale-110" />
-              <span className="font-semibold">GitHub</span>
-              <span className="text-muted-foreground text-sm">Check my code</span>
-            </a>
-          </div>
+          <ul className="mt-4">
+            {channels.map((c) => (
+              <li key={c.name} className="border-hairline border-b">
+                <a
+                  href={c.href}
+                  {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  className="group grid grid-cols-[4rem_1fr_auto] items-center gap-4 py-8 md:grid-cols-[6rem_1fr_16rem_auto] md:py-10"
+                >
+                  <span className="label-mono text-sodium tabular-nums">{c.code}</span>
+                  <span className="group-hover:text-sodium font-serif text-5xl leading-none transition-colors duration-150 md:text-7xl">
+                    {c.name}
+                  </span>
+                  <span className="text-muted-foreground hidden text-sm md:block">{c.hint}</span>
+                  <ArrowUpRight
+                    className="text-muted-foreground group-hover:text-sodium size-6 transition-colors duration-150"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </main>
       <Footer />

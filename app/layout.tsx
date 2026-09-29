@@ -1,20 +1,40 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type { Viewport } from 'next'
+import { Instrument_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { ThemeProvider } from '@/components/ui/theme-provider'
-import { ParticleBackground } from '@/components/ui/particle-background'
 import { GlobalEffects } from '@/components/ui/global-effects'
+import { SmoothScroll } from '@/components/ui/smooth-scroll'
 import { StructuredData } from '@/components/ui/structured-data'
-import { clsx } from 'clsx'
+import { cn } from '@/lib/utils'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({
+const sans = Instrument_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-instrument-sans',
   display: 'swap',
 })
+
+const serif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
+  display: 'swap',
+})
+
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+})
+
+export const viewport: Viewport = {
+  themeColor: '#05070c',
+  colorScheme: 'dark',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nilslutz.de'),
@@ -88,23 +108,22 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={cn(sans.variable, serif.variable, mono.variable)}>
       <head>
         <StructuredData />
       </head>
-      <body
-        className={clsx(
-          inter.variable,
-          'bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300'
-        )}
-      >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {/* Particle Background - Global */}
-          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
-          {/* Global Effects (Matrix Easter Egg) */}
-          <GlobalEffects />
-          <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
-        </ThemeProvider>
+      <body className="bg-background text-foreground min-h-screen font-sans antialiased">
+        <a
+          href="#main"
+          className="label-mono bg-sodium text-primary-foreground sr-only z-[70] rounded-md px-3 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+        >
+          Skip to content
+        </a>
+        <div className="signal-backdrop" aria-hidden="true" />
+        <SmoothScroll />
+        <GlobalEffects />
+        <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+        <div className="signal-grain" aria-hidden="true" />
         <Analytics />
         <SpeedInsights />
       </body>

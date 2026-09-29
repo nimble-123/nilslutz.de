@@ -19,15 +19,13 @@ export async function MDXContent({ source }: MDXContentProps) {
             [
               rehypePrettyCode,
               {
-                theme: {
-                  dark: 'github-dark',
-                  light: 'github-light',
-                },
+                // Single dark theme: warm keywords on ink, matching the sodium accent
+                theme: 'vesper',
                 keepBackground: false,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 getHighlighter: async (options: any) => {
                   const highlighter = await createHighlighter({
-                    themes: options.themes || ['github-dark', 'github-light'],
+                    themes: options.themes || ['vesper'],
                     langs: [
                       'javascript',
                       'typescript',

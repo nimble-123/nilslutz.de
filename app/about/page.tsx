@@ -1,13 +1,11 @@
-'use client'
-
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
-import { motion } from 'framer-motion'
+import { PageHeader } from '@/components/ui/page-header'
+import { profile } from '@/content/profile'
 
-// Note: Metadata export doesn't work with 'use client', use layout.tsx or page metadata wrapper
-// For SEO purposes, consider extracting animations to a separate client component
+// Metadata lives in ./metadata.ts (re-exported below)
+export { metadata } from './metadata'
 
-// Timeline data
 const experience = [
   {
     role: 'Lead Software Engineer',
@@ -52,14 +50,14 @@ const experience = [
 
 const education = [
   {
-    devgree: 'Master of Science (M.Sc.)',
+    degree: 'Master of Science (M.Sc.)',
     field: 'Business Informatics',
     school: 'Carl von Ossietzky University Oldenburg',
     period: '2015 - 2018',
     description: 'Focus on Workflow Management and Business Intelligence.',
   },
   {
-    devgree: 'Bachelor of Science (B.Sc.)',
+    degree: 'Bachelor of Science (B.Sc.)',
     field: 'Business Informatics',
     school: 'Jade University of Applied Sciences',
     period: '2011 - 2015',
@@ -67,170 +65,175 @@ const education = [
   },
 ]
 
+const principles = [
+  {
+    title: 'Docs as Code',
+    text: 'Documentation lives with the code. I use arc42-light and ADRs to capture architectural decisions where they happen.',
+  },
+  {
+    title: 'Clean Core',
+    text: 'Strict separation of standard and custom code. Extensions run Side-by-Side on BTP or via released APIs on-stack.',
+  },
+  {
+    title: 'Automated Quality Gates',
+    text: 'CI/CD pipelines are mandatory. Static code analysis (ESLint, ABAP Test Cockpit) ensures consistent quality.',
+  },
+  {
+    title: 'User Centricity',
+    text: 'Fiori Guidelines are there for a reason. Consistent UX reduces training costs and increases adoption.',
+  },
+]
+
+const achievements = [
+  'SAP Community Fan 2022',
+  'Open Documentation Initiative Contributor',
+  'SAP Community Code Challenge Participant',
+  'Coffee Corner Connoisseur',
+  'Multiple SAP TechEd Attendee (2020-2022)',
+]
+
+function SectionTitle({ code, children }: { code: string; children: React.ReactNode }) {
+  return (
+    <div className="md:col-span-4">
+      <p className="label-mono text-sodium mb-3 tabular-nums">{code}</p>
+      <h2 className="font-serif text-4xl leading-none md:text-5xl">{children}</h2>
+    </div>
+  )
+}
+
 export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-3xl space-y-16">
-          {/* Profile Section */}
-          <section className="space-y-6">
-            <h1 className="text-4xl font-bold tracking-tight">About Me</h1>
-            <div className="prose dark:prose-invert prose-p:text-muted-foreground prose-strong:text-foreground max-w-none text-lg leading-relaxed">
+      <main id="main" className="flex-1 px-4 pt-12 pb-24 md:px-10 md:pt-20">
+        <div className="mx-auto max-w-6xl">
+          <PageHeader
+            code="01"
+            channel="About"
+            title={
+              <>
+                About <em>me</em>
+              </>
+            }
+          />
+
+          <section className="grid gap-10 py-16 md:grid-cols-12 md:py-24">
+            <SectionTitle code="1.1">
+              Enterprise <em>pragmatism</em>
+            </SectionTitle>
+            <div className="text-foreground/85 space-y-6 text-lg leading-relaxed md:col-span-7 md:col-start-6">
               <p>
-                I design and build Side-by-Side Extensions with <strong>CAP</strong>, <strong>RAP</strong>, and{' '}
-                <strong>Fiori</strong> on SAP BTP. My primary focus is on <strong>Clean Core</strong> compliance,
+                I design and build Side-by-Side Extensions with <strong className="text-foreground">CAP</strong>,{' '}
+                <strong className="text-foreground">RAP</strong>, and <strong className="text-foreground">Fiori</strong>{' '}
+                on SAP BTP. My primary focus is on <strong className="text-foreground">Clean Core</strong> compliance,
                 event-driven architectures, and distinct &quot;Separation of Concerns&quot;. Increasingly, my work has
-                shifted from building individual solutions to shaping the <strong>target architecture</strong> and the{' '}
-                <strong>development standards</strong> the whole SAP landscape is built on.
+                shifted from building individual solutions to shaping the{' '}
+                <strong className="text-foreground">target architecture</strong> and the{' '}
+                <strong className="text-foreground">development standards</strong> the whole SAP landscape is built on.
               </p>
-
-              <br></br>
-
               <p>
-                I believe in <strong>Enterprise Pragmatism</strong>. Software used in large corporations must be robust,
-                maintainable, and deliver measurable value. I advocate for modern development practices not just because
-                they are trendy, but because they significantly reduce the Total Cost of Ownership (TCO) and enable
-                sustainable innovation.
+                I believe in <strong className="text-foreground">Enterprise Pragmatism</strong>. Software used in large
+                corporations must be robust, maintainable, and deliver measurable value. I advocate for modern
+                development practices not just because they are trendy, but because they significantly reduce the Total
+                Cost of Ownership (TCO) and enable sustainable innovation.
               </p>
             </div>
           </section>
 
-          {/* Community Engagement Section */}
-          <section className="space-y-6">
-            <h2 className="text-2xl font-bold tracking-tight">Community Engagement</h2>
-            <div className="prose dark:prose-invert prose-p:text-muted-foreground prose-strong:text-foreground max-w-none text-lg leading-relaxed">
-              <p>
-                Active member of the <strong>SAP Community</strong> with <strong>249 badges</strong> earned through
-                tutorials, contributions, and event participation. Regular participant in <strong>Devtoberfest</strong>{' '}
+          <section className="border-hairline grid gap-10 border-t py-16 md:grid-cols-12 md:py-24">
+            <SectionTitle code="1.2">
+              Philosophy & <em>method</em>
+            </SectionTitle>
+            <ol className="grid gap-px md:col-span-7 md:col-start-6 md:grid-cols-2">
+              {principles.map((p, i) => (
+                <li key={p.title} className="surface rounded-2xl p-6">
+                  <p className="label-mono text-sodium tabular-nums">P·{String(i + 1).padStart(2, '0')}</p>
+                  <h3 className="mt-3 font-serif text-2xl">{p.title}</h3>
+                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{p.text}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="border-hairline grid gap-10 border-t py-16 md:grid-cols-12 md:py-24">
+            <SectionTitle code="1.3">
+              Community <em>signal</em>
+            </SectionTitle>
+            <div className="md:col-span-7 md:col-start-6">
+              <p className="text-foreground/85 text-lg leading-relaxed">
+                Active member of the <strong className="text-foreground">SAP Community</strong> with{' '}
+                <strong className="text-foreground">249 badges</strong> earned through tutorials, contributions, and event
+                participation. Regular participant in <strong className="text-foreground">Devtoberfest</strong>{' '}
                 (2021-2025), achieving finalist status in 2021.
               </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="glass-card rounded-xl p-6 text-center">
-                <div className="text-primary text-3xl font-bold">249</div>
-                <div className="text-muted-foreground mt-2 text-sm font-medium">Community Badges</div>
-              </div>
-              <div className="glass-card rounded-xl p-6 text-center">
-                <div className="text-primary text-3xl font-bold">5</div>
-                <div className="text-muted-foreground mt-2 text-sm font-medium">Devtoberfest Years</div>
-              </div>
-              <div className="glass-card rounded-xl p-6 text-center">
-                <div className="text-primary text-3xl font-bold">Finalist</div>
-                <div className="text-muted-foreground mt-2 text-sm font-medium">Devtoberfest 2021</div>
-              </div>
-            </div>
-            <div className="glass-card rounded-xl p-6">
-              <h3 className="mb-4 font-semibold">Key Achievements</h3>
-              <ul className="text-muted-foreground space-y-2 text-sm">
-                <li>✅ SAP Community Fan 2022</li>
-                <li>✅ Open Documentation Initiative Contributor</li>
-                <li>✅ SAP Community Code Challenge Participant</li>
-                <li>✅ Coffee Corner Connoisseur</li>
-                <li>✅ Multiple SAP TechEd Attendee (2020-2022)</li>
+              <dl className="border-hairline mt-10 grid grid-cols-3 border-y">
+                {[
+                  ['249', 'Community Badges'],
+                  ['5', 'Devtoberfest Years'],
+                  ['Finalist', 'Devtoberfest 2021'],
+                ].map(([v, k]) => (
+                  <div key={k} className="border-hairline border-r py-6 pr-4 last:border-r-0 [&:not(:first-child)]:pl-4">
+                    <dd className="text-sodium font-serif text-4xl tabular-nums md:text-5xl">{v}</dd>
+                    <dt className="label-mono text-muted-foreground mt-2">{k}</dt>
+                  </div>
+                ))}
+              </dl>
+              <ul className="mt-8 space-y-2">
+                {achievements.map((a) => (
+                  <li key={a} className="text-foreground/80 flex items-baseline gap-3 text-sm">
+                    <span className="bg-sodium/70 inline-block h-px w-3 shrink-0 translate-y-[-3px]" aria-hidden="true" />
+                    {a}
+                  </li>
+                ))}
               </ul>
               <a
-                href="https://community.sap.com/t5/user/viewprofilepage/user-id/73"
+                href={profile.socials.community}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary mt-4 inline-block text-sm font-medium hover:underline"
+                className="label-mono text-sodium mt-6 inline-flex h-11 items-center hover:underline"
               >
                 View Full Profile on SAP Community →
               </a>
             </div>
           </section>
 
-          {/* Philosophy Section */}
-          <section className="space-y-6">
-            <h2 className="text-2xl font-bold tracking-tight">Philosophy & Methodology</h2>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="mb-2 font-semibold">Docs as Code</h3>
-                <p className="text-muted-foreground text-sm">
-                  Documentation lives with the code. I use arc42-light and ADRs to capture architectural decisions where
-                  they happen.
-                </p>
-              </div>
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="mb-2 font-semibold">Clean Core</h3>
-                <p className="text-muted-foreground text-sm">
-                  Strict separation of standard and custom code. Extensions run Side-by-Side on BTP or via released APIs
-                  on-stack.
-                </p>
-              </div>
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="mb-2 font-semibold">Automated Quality Gates</h3>
-                <p className="text-muted-foreground text-sm">
-                  CI/CD pipelines are mandatory. Static code analysis (ESLint, ABAP Test Cockpit) ensures consistent
-                  quality.
-                </p>
-              </div>
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="mb-2 font-semibold">User Centricity</h3>
-                <p className="text-muted-foreground text-sm">
-                  Fiori Guidelines are there for a reason. Consistent UX reduces training costs and increases adoption.
-                </p>
-              </div>
-            </div>
+          <section className="border-hairline grid gap-10 border-t py-16 md:grid-cols-12 md:py-24">
+            <SectionTitle code="1.4">Experience</SectionTitle>
+            <ol className="md:col-span-7 md:col-start-6">
+              {experience.map((item) => (
+                <li
+                  key={item.period}
+                  className="border-hairline grid gap-2 border-b py-7 first:pt-0 md:grid-cols-[10rem_1fr] md:gap-6"
+                >
+                  <p className="label-mono text-muted-foreground pt-1.5 tabular-nums">{item.period}</p>
+                  <div>
+                    <h3 className="font-serif text-2xl leading-tight">{item.role}</h3>
+                    <p className="text-sodium mt-1 text-sm">{item.company}</p>
+                    <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{item.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </section>
 
-          {/* Experience Section */}
-          <section className="space-y-8">
-            <h2 className="text-2xl font-bold tracking-tight">Experience</h2>
-            <div className="border-primary/20 relative ml-3 space-y-12 border-l">
-              {experience.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="relative ml-8"
+          <section className="border-hairline grid gap-10 border-t py-16 md:grid-cols-12 md:py-24">
+            <SectionTitle code="1.5">Education</SectionTitle>
+            <ol className="md:col-span-7 md:col-start-6">
+              {education.map((item) => (
+                <li
+                  key={item.period}
+                  className="border-hairline grid gap-2 border-b py-7 first:pt-0 md:grid-cols-[10rem_1fr] md:gap-6"
                 >
-                  <span className="border-background bg-primary absolute top-1 -left-[41px] h-5 w-5 rounded-full border-4" />
-                  <div className="glass-card rounded-xl p-6 transition-colors hover:bg-white/5">
-                    <div className="mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                      <h3 className="text-primary text-lg font-bold">{item.role}</h3>
-                      <span className="text-muted-foreground bg-secondary/50 rounded px-2 py-1 font-mono text-sm">
-                        {item.period}
-                      </span>
-                    </div>
-                    <p className="text-md text-foreground mb-2 font-semibold">{item.company}</p>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+                  <p className="label-mono text-muted-foreground pt-1.5 tabular-nums">{item.period}</p>
+                  <div>
+                    <h3 className="font-serif text-2xl leading-tight">{item.degree}</h3>
+                    <p className="text-sodium mt-1 text-sm">{item.school}</p>
+                    <p className="text-foreground/70 mt-1 text-sm italic">{item.field}</p>
+                    <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{item.description}</p>
                   </div>
-                </motion.div>
+                </li>
               ))}
-            </div>
-          </section>
-
-          {/* Education Section */}
-          <section className="space-y-8">
-            <h2 className="text-2xl font-bold tracking-tight">Education</h2>
-            <div className="border-primary/20 relative ml-3 space-y-12 border-l">
-              {education.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="relative ml-8"
-                >
-                  <span className="border-background bg-primary absolute top-1 -left-[41px] h-5 w-5 rounded-full border-4" />
-                  <div className="glass-card rounded-xl p-6 transition-colors hover:bg-white/5">
-                    <div className="mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                      <h3 className="text-primary text-lg font-bold">{item.devgree}</h3>
-                      <span className="text-muted-foreground bg-secondary/50 rounded px-2 py-1 font-mono text-sm">
-                        {item.period}
-                      </span>
-                    </div>
-                    <p className="text-md text-foreground mb-1 font-semibold">{item.school}</p>
-                    <p className="text-foreground/80 mb-2 text-sm italic">{item.field}</p>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            </ol>
           </section>
         </div>
       </main>

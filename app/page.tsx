@@ -1,11 +1,10 @@
+import { Metadata } from 'next'
+import { format } from 'date-fns'
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
-import { Hero } from '@/components/specialized/hero'
-import { Services } from '@/components/specialized/services'
-import { FeaturedWork } from '@/components/specialized/featured-work'
-import { TechStack } from '@/components/specialized/tech-stack'
-import { getCaseStudies } from '@/lib/content'
-import { Metadata } from 'next'
+import { HomeExperience } from '@/components/specialized/signal/home-experience'
+import { getCaseStudies, getNotes } from '@/lib/content'
+import { decodeEntities } from '@/lib/signal-layout'
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -20,17 +19,30 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  const allCaseStudies = await getCaseStudies()
-  const featured = allCaseStudies.filter((cs) => cs.featured).slice(0, 3)
+  const [caseStudies, notes] = await Promise.all([getCaseStudies(), getNotes()])
 
   return (
     <>
-      <Navbar />
-      <main className="container mx-auto flex-1 px-4">
-        <Hero />
-        <Services />
-        <FeaturedWork caseStudies={featured} />
-        <TechStack />
+      <Navbar overlay />
+      <main id="main" className="flex-1">
+        <HomeExperience
+          cases={caseStudies.map((c) => ({
+            slug: c.slug,
+            title: c.title,
+            summary: c.summary,
+            role: c.role,
+            period: c.period,
+            tags: c.tags,
+            metric: c.metrics?.[0] ? decodeEntities(c.metrics[0]) : undefined,
+          }))}
+          notes={notes.slice(0, 4).map((n) => ({
+            slug: n.slug,
+            title: n.title,
+            summary: n.summary,
+            date: n.date,
+            dateLabel: format(new Date(n.date), 'yyyy.MM.dd'),
+          }))}
+        />
       </main>
       <Footer />
     </>
