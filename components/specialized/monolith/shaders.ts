@@ -33,7 +33,7 @@ const common = /* glsl */ `
     col *= 0.99 + 0.02 * noise(q * 90.0);
     col *= 0.985 + 0.03 * hash(id + 9.0);
 
-    vec3 basalt = vec3(0.078, 0.078, 0.084) * (0.8 + 0.45 * fbm(q * 2.2));
+    vec3 basalt = vec3(0.14, 0.138, 0.142) * (0.82 + 0.4 * fbm(q * 2.2));
     basalt += vec3(0.02, 0.018, 0.015) * smoothstep(0.8, 0.95, noise(q * 26.0));
     return mix(col, basalt, night);
   }
@@ -120,8 +120,8 @@ export const wallFragment = /* glsl */ `
     // museum light: ceiling wash by day, a narrow warm pool after hours
     float wash = mix(0.66, 0.84, smoothstep(0.0, 4.5, p.y));
     float poolDay = exp(-pow(length((p - vec2(0.0, 1.9)) * vec2(0.22, 0.42)), 2.0)) * 0.12;
-    float poolNight = exp(-pow(length((p - vec2(0.0, 1.55)) * vec2(0.42, 0.5)), 2.0));
-    float ambient = mix(wash + poolDay, 0.05 + poolNight * 0.26, uNight);
+    float poolNight = exp(-pow(length((p - vec2(0.0, 1.6)) * vec2(0.3, 0.42)), 2.0));
+    float ambient = mix(wash + poolDay, 0.1 + poolNight * 0.75, uNight);
 
     // shadow + caustic of the glass on the wall
     vec3 toL = uLight - vWorld;
@@ -134,7 +134,7 @@ export const wallFragment = /* glsl */ `
     float cz = caustic(Q.xy * 3.2, uTime * 0.12) * occ * uAssembled;
 
     vec3 lightCol = mix(vec3(1.0, 0.975, 0.94), vec3(1.0, 0.8, 0.55), uNight);
-    float direct = diff * att * mix(0.55, 1.35, uNight) * (1.0 - glassShadow);
+    float direct = diff * att * mix(0.55, 1.9, uNight) * (1.0 - glassShadow);
     vec3 col = alb * (ambient + direct * lightCol);
     col += alb * lightCol * carve * mix(0.55, 1.1, uNight) * att * 3.0;
     col += lightCol * cz * mix(0.05, 0.08, uNight) * att;
@@ -189,11 +189,11 @@ export const floorFragment = /* glsl */ `
     float cz = pow(caustic(p * 4.2 + hit * 2.0, uTime * 0.14), 1.6) * occ * uAssembled;
 
     float wash = mix(0.7, 0.8, smoothstep(6.0, -2.0, p.y));
-    float poolNight = exp(-pow(length((p - vec2(0.0, 0.3)) * vec2(0.45, 0.6)), 2.0));
-    float ambient = mix(wash, 0.04 + poolNight * 0.22, uNight);
+    float poolNight = exp(-pow(length((p - vec2(0.0, 0.2)) * vec2(0.34, 0.45)), 2.0));
+    float ambient = mix(wash, 0.08 + poolNight * 0.7, uNight);
 
     vec3 lightCol = mix(vec3(1.0, 0.975, 0.94), vec3(1.0, 0.8, 0.55), uNight);
-    float direct = diff * att * mix(0.45, 1.4, uNight);
+    float direct = diff * att * mix(0.45, 1.8, uNight);
     vec3 col = alb * (ambient + direct * lightCol) * (1.0 - shadow);
     col += lightCol * (sheen * att * (1.0 - shadow));
     col += lightCol * cz * mix(0.1, 0.2, uNight) * att;
@@ -314,12 +314,12 @@ export const glassFragment = /* glsl */ `
     refr *= mix(vec3(0.97), tint, 0.55 + bevel * 0.45);
     // Beer–Lambert: longer paths (grazing faces, bevels) absorb toward a cool grey-green
     float path = uThickness * (1.0 + bevel * 1.5) / max(NdV, 0.22);
-    refr *= exp(-vec3(0.2, 0.12, 0.11) * path * mix(1.0, 1.6, uNight));
+    refr *= exp(-vec3(0.2, 0.12, 0.11) * path * mix(1.0, 1.2, uNight));
 
     // reflection of an imaginary gallery: bright ceiling, stone walls
     vec3 R = reflect(-V, N);
     vec3 envDay = mix(vec3(0.46, 0.44, 0.41), vec3(0.97, 0.96, 0.94), smoothstep(0.05, 0.85, R.y));
-    vec3 envNight = mix(vec3(0.02), vec3(0.14, 0.12, 0.1), smoothstep(0.2, 0.9, R.y));
+    vec3 envNight = mix(vec3(0.05, 0.048, 0.045), vec3(0.34, 0.28, 0.21), smoothstep(0.1, 0.9, R.y));
     vec3 env = mix(envDay, envNight, uNight);
     // skylight strip
     env += smoothstep(0.93, 0.99, R.y) * mix(0.25, 0.1, uNight);

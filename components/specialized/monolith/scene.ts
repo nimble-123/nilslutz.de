@@ -413,6 +413,14 @@ export function createMonolithScene(canvas: HTMLCanvasElement, opts: MonolithOpt
       uRes.value.copy(buf)
       bgRT.setSize(buf.x, buf.y)
       compRT.setSize(buf.x, buf.y)
+      // portrait: set the carved wordmark smaller so it stays readable (and still behind the glass)
+      const ws = aspect < 1 ? 0.5 : 1
+      wallMat.uniforms.uWordRect.value.set(
+        WORD_RECT.x * ws,
+        aspect < 1 ? 1.5 : WORD_RECT.y,
+        WORD_RECT.w * ws,
+        WORD_RECT.h * ws
+      )
       camera.aspect = aspect
       camera.fov = aspect < 1 ? 40 : 34
       camera.updateProjectionMatrix()

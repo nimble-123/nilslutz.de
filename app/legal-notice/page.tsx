@@ -18,7 +18,12 @@ export default function ImpressumPage() {
     <>
       <Navbar />
       <main className="flex-1 px-4 pt-32 md:px-8 md:pt-44">
-        <div className={cn(proseClass, 'mx-auto max-w-[46rem] prose-h1:font-light prose-h1:text-[clamp(2.6rem,6vw,4.4rem)]')}>
+        <div
+          className={cn(
+            proseClass,
+            'prose-h1:font-light prose-h1:text-[clamp(2.6rem,6vw,4.4rem)] mx-auto max-w-[46rem]'
+          )}
+        >
           <h1>Impressum</h1>
 
           <h2>Angaben gemäß § 5 TMG</h2>

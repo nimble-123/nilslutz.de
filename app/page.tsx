@@ -133,8 +133,7 @@ export default async function Page() {
               Enterprise Pragmatism
             </p>
             <WallText className="font-display mt-8 max-w-5xl text-[clamp(2rem,4.4vw,4rem)] leading-[1.08] font-light tracking-[-0.01em]">
-              Software used in large corporations must be robust, maintainable, and deliver{' '}
-              <em>measurable value.</em>
+              Software used in large corporations must be robust, maintainable, and deliver <em>measurable value.</em>
             </WallText>
             <dl className="mt-20 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
               {principles.map((pr, i) => (
