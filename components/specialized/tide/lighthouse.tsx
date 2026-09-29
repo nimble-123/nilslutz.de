@@ -27,6 +27,14 @@ export function Lighthouse() {
   })
   const click = useStateMachineInput(rive, STATE_MACHINE, 'Click')
   const hover = useStateMachineInput(rive, STATE_MACHINE, 'Hover')
+  // Rive inputs are mutable handles; keep them behind a ref so handlers can set them.
+  const hoverRef = useRef(hover)
+  useEffect(() => {
+    hoverRef.current = hover
+  }, [hover])
+  const setHover = (on: boolean) => {
+    if (hoverRef.current) hoverRef.current.value = on
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -48,8 +56,8 @@ export function Lighthouse() {
     <button
       type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      onPointerEnter={() => hover && (hover.value = true)}
-      onPointerLeave={() => hover && (hover.value = false)}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
       aria-pressed={isDark}
       aria-label={isDark ? 'Lighthouse: switch to day tide' : 'Lighthouse: switch to night tide'}
       className="group shadow-lift relative block aspect-[6/5] w-full overflow-hidden rounded-[1.5rem] bg-[#2a2f33] transition-[scale] duration-150 ease-out active:scale-[0.96]"
