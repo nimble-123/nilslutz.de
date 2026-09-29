@@ -50,20 +50,10 @@ export function TerrainHero() {
           { scaleY: 1, duration: 1.4, ease: 'power3.inOut', stagger: 0.08 },
           0
         )
-        .fromTo(
-          '[data-hero-meta]',
-          { opacity: 0, y: 8, filter: 'blur(4px)' },
-          { ...enter, stagger: 0.1 },
-          0.5
-        )
+        .fromTo('[data-hero-meta]', { opacity: 0, y: 8, filter: 'blur(4px)' }, { ...enter, stagger: 0.1 }, 0.5)
         .fromTo('[data-hero-role]', { opacity: 0, y: 12, filter: 'blur(4px)' }, enter, 1.2)
         .fromTo(split.lines, { opacity: 0, y: 12, filter: 'blur(4px)' }, { ...enter, stagger: 0.1 }, 1.32)
-        .fromTo(
-          '[data-hero-action]',
-          { opacity: 0, y: 12, filter: 'blur(4px)' },
-          { ...enter, stagger: 0.1 },
-          1.6
-        )
+        .fromTo('[data-hero-action]', { opacity: 0, y: 12, filter: 'blur(4px)' }, { ...enter, stagger: 0.1 }, 1.6)
         .fromTo('[data-hero-late]', { opacity: 0 }, { opacity: 1, duration: 0.8, stagger: 0.1 }, 2.1)
     }, root)
 
@@ -182,8 +172,8 @@ export function TerrainHero() {
               data-hero-tagline
               className="max-w-[34rem] font-serif text-[1.35rem] leading-[1.35] tracking-[-0.005em] md:text-[1.7rem]"
             >
-              I architect <em className="text-primary">Clean-Core</em> compliant SAP solutions on BTP, CAP, RAP and Fiori —
-              and set the standards they run on.
+              I architect <em className="text-primary">Clean-Core</em> compliant SAP solutions on BTP, CAP, RAP and
+              Fiori — and set the standards they run on.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -222,17 +212,18 @@ export function TerrainHero() {
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between md:mt-10">
-          <p data-hero-reveal data-hero-late className="marginalia text-muted-foreground lg:hidden">
-            Touch the sheet to raise the terrain
+        <div className="mt-8 flex items-center justify-between gap-6 md:mt-10">
+          <p data-hero-reveal data-hero-late className="marginalia text-muted-foreground min-w-0 lg:hidden">
+            Touch to raise the terrain
           </p>
           <a
             href="#strata"
             data-hero-reveal
             data-hero-late
-            className="marginalia text-muted-foreground hover:text-foreground ml-auto inline-flex min-h-11 items-center gap-2 transition-colors lg:mx-auto"
+            className="marginalia text-muted-foreground hover:text-foreground ml-auto inline-flex min-h-11 shrink-0 items-center gap-2 transition-colors lg:mx-auto"
           >
-            Descend through the strata
+            <span className="sm:hidden">Descend</span>
+            <span className="hidden sm:inline">Descend through the strata</span>
             <ArrowDown className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
           </a>
         </div>

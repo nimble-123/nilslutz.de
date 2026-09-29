@@ -73,9 +73,8 @@ export function StrataSection() {
         const narrow = sr.width / sr.height < 0.9
         let d: string
         if (narrow) {
-          const tx = ir.left - sr.left + 18
-          const ty = ir.top - sr.top
-          d = `M${a.x},${a.y} L${a.x + 16},${a.y} L${a.x + 16},${ty - 10} L${tx},${ty - 10} L${tx},${ty}`
+          const ty = (item.closest('ol') ?? item).getBoundingClientRect().top - sr.top
+          d = `M${a.x},${a.y} L${a.x + 16},${a.y} L${a.x + 16},${ty}`
         } else {
           const tx = ir.left - sr.left - 12
           const ty = ir.top - sr.top + 22
@@ -245,16 +244,16 @@ export function StrataSection() {
             <br />
             of the practice
           </h2>
-          <p className="text-muted-foreground mt-3 hidden max-w-sm font-serif text-lg leading-snug md:block">
-            Every solution sits on something. Read the column from the surface people touch down to the bedrock it
-            rests on.
+          <p className="text-muted-foreground mt-3 hidden max-w-[19rem] font-serif text-lg leading-snug text-pretty md:block">
+            Every solution sits on something. Read the column from the surface people touch down to the bedrock it rests
+            on.
           </p>
         </div>
 
         <ol
           className={cn(
-            'pointer-events-auto mt-auto w-full space-y-1 lg:absolute lg:top-1/2 lg:right-8 lg:mt-0 lg:w-[min(30rem,38vw)] lg:-translate-y-1/2',
-            'bg-[color-mix(in_oklab,var(--background)_82%,transparent)] backdrop-blur-[2px] max-lg:rounded-md max-lg:p-3 max-lg:shadow-[var(--shadow-border)]'
+            'pointer-events-auto mt-auto w-full space-y-1 lg:absolute lg:top-1/2 lg:right-8 lg:mt-0 lg:w-[min(28rem,33vw)] lg:-translate-y-1/2',
+            'bg-[color-mix(in_oklab,var(--background)_86%,transparent)] max-lg:rounded-[15px] max-lg:bg-[color-mix(in_oklab,var(--background)_94%,transparent)] max-lg:p-3 max-lg:shadow-[var(--shadow-border)]'
           )}
         >
           {strata.map((s, i) => {
@@ -268,7 +267,7 @@ export function StrataSection() {
                 }}
                 data-active={isActive ? 'true' : 'false'}
                 className={cn(
-                  'group relative border-t border-[var(--rule)] py-3 transition-opacity duration-300 ease-out first:border-t-0 lg:first:border-t',
+                  'group relative border-t border-[var(--rule)] py-3 transition-opacity duration-300 ease-out max-lg:border-t-0 max-lg:py-1',
                   isActive || active === -1 ? 'opacity-100' : 'opacity-45',
                   collapsedOnMobile && 'max-lg:hidden',
                   active === -1 && !reduced && 'max-lg:[&:not(:first-child)]:hidden'

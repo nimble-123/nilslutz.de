@@ -67,6 +67,10 @@ uniform vec3 uPaper;
 uniform vec3 uInk;
 uniform vec3 uContour;
 uniform vec3 uPatternInk;
+uniform float uTopBase;
+uniform float uTopAmp;
+uniform float uTopSeed;
+uniform float uTopWarp;
 
 varying vec3 vPos;
 varying vec3 vWorld;
@@ -75,6 +79,7 @@ varying float vT;
 
 ${NOISE_GLSL}
 ${CONTOUR_GLSL}
+${SURFACE_GLSL}
 
 float aaLine(float d, float px) {
   // d is a distance measured in "pixels"
@@ -112,13 +117,17 @@ void main() {
   vec3 col;
 
   if (vN.y > 0.5) {
-    // top surface: printed as a contour map
-    vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
-    if (n.y < 0.0) n = -n;
+    // top surface: printed as a contour map. Height + normal are evaluated per pixel so the
+    // relief stays smooth however close the camera gets (vertex heights would facet).
+    float hC = surf(vPos.xz, uTopBase, uTopAmp, uTopSeed, uTopWarp);
+    const float E = 0.004;
+    float hX = surf(vPos.xz + vec2(E, 0.0), uTopBase, uTopAmp, uTopSeed, uTopWarp);
+    float hZ = surf(vPos.xz + vec2(0.0, E), uTopBase, uTopAmp, uTopSeed, uTopWarp);
+    vec3 n = normalize(vec3(-(hX - hC) / E, 1.0, -(hZ - hC) / E));
     float sh = clamp(dot(n, L), 0.0, 1.0);
     col = mix(uPaper, uColor, uIdx < 0.5 ? 0.16 : 0.38);
     col *= mix(0.84, 1.04, sh);
-    float lv = vPos.y * uLevels;
+    float lv = hC * uLevels;
     col = mix(col, uContour, isoLine(lv, 1.0) * 0.6);
     col = mix(col, mix(uContour, uInk, 0.3), isoLine(lv, 2.0) * isIndexContour(lv, 5.0) * 0.9);
     // neatline around the sheet
@@ -259,17 +268,17 @@ export function createStrataBlock(container: HTMLElement): StrataBlock | null {
   let w = 1
   let h = 1
   let progress = 0
-  const state = { theta: 0.02, phi: 0, view: 2.4, explode: 0, lookY: 0 }
+  const state = { theta: 0.02, phi: 0, view: 2.4, explode: 0, lookY: 0, settle: 1 }
 
   const layout = () => {
     const narrow = w / h < 0.9
     const aspect = w / h
     let viewH = state.view
-    if (narrow) viewH = Math.max(viewH, (state.view * 1.15) / aspect)
+    if (narrow) viewH = Math.max(viewH, (state.view * 0.98) / aspect)
     const viewW = viewH * aspect
-    // desktop: the block sits left of centre so the legend has room on the right
-    const cx = narrow ? 0.5 : 0.4
-    const cy = narrow ? 0.46 : 0.5
+    // desktop: the block settles between the intro and the legend; phones: between heading and card
+    const cx = narrow ? 0.5 : 0.5 + (0.43 - 0.5) * state.settle
+    const cy = narrow ? 0.5 + (0.56 - 0.5) * state.settle : 0.5 + (0.47 - 0.5) * state.settle
     camera.left = -cx * viewW
     camera.right = (1 - cx) * viewW
     camera.top = (1 - cy) * viewH
@@ -295,7 +304,9 @@ export function createStrataBlock(container: HTMLElement): StrataBlock | null {
     const tilt = smooth(0.0, 0.24, p)
     state.theta = 0.02 + tilt * 1.0
     state.phi = tilt * (Math.PI / 4 - 0.1) + p * 0.3
-    state.view = 2.45 + tilt * 1.25 + smooth(0.24, 0.6, p) * 0.9
+    // at p = 0 the sheet fills the viewport (the map continues from the hero), then recedes
+    state.settle = smooth(0.0, 0.2, p)
+    state.view = 1.15 + state.settle * 1.45 + tilt * 1.5 + smooth(0.24, 0.6, p) * 0.95
     state.explode = smooth(0.24, 0.62, p)
     state.lookY = state.explode * 0.42
 

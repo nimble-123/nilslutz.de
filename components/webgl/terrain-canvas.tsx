@@ -72,10 +72,16 @@ void main() {
     h += pk.z * exp(-dot(d, d) * 14.0);
   }
 
-  // wordmark embossed as a plateau
-  float w = texture2D(uWord, vUv).r * uWordAmt;
-  float plate = smoothstep(0.12, 0.88, w);
-  h = mix(h, h * 0.22 + 0.30, plate);
+  // wordmark embossed as a plateau: G = tight ramp (outline at 0.5, bevel, inset contour), B = wide footing
+  vec4 wt = texture2D(uWord, vUv);
+  float wA = step(0.02, uWordAmt);
+  // AA'd plateau mask from the smooth ramp: its 0.5 level sits on the glyph outline
+  float fwG = max(fwidth(wt.g), 1e-4);
+  float plate = smoothstep(0.5 - fwG * 0.75, 0.5 + fwG * 0.75, wt.g) * uWordAmt;
+  float shoulder = wt.b * uWordAmt;
+
+  // terrain rises into the letters' footings, so contours crowd around them like an escarpment
+  h += shoulder * 0.16 * (1.0 - plate);
 
   float lv = h * uLevels;
   float minor = isoLine(lv, 1.0);
@@ -93,23 +99,34 @@ void main() {
   col = mix(col, uOchre, (0.09 + 0.05 * uDark) * smoothstep(0.18, 0.62, h));
   col *= mix(0.86, 1.05, clamp(sh, 0.0, 1.0)) + uDark * 0.04;
 
-  // plateau reads as clean, lighter paper
-  vec3 plateCol = mix(uPaper, uOchre, 0.10 + 0.08 * uDark) * (1.03 - uDark * 0.02);
-  col = mix(col, plateCol, plate * 0.85);
-
   // kilometre grid, survey green
   vec2 gp = p / uGrid;
   float grid = max(isoLine(gp.x, 1.0), isoLine(gp.y, 1.0));
   col = mix(col, uSurvey, grid * (0.13 + 0.07 * uDark));
 
-  // contours
-  col = mix(col, uContour, minor * (0.55 + 0.15 * uDark));
-  col = mix(col, mix(uContour, uInk, 0.3), index * 0.92);
+  // contours stop at the plateau edge
+  float open = 1.0 - smoothstep(0.05, 0.5, plate);
+  col = mix(col, uContour, minor * (0.55 + 0.15 * uDark) * open);
+  col = mix(col, mix(uContour, uInk, 0.3), index * 0.92 * open);
 
-  // wordmark cliff edge: a fine ink hairline where the plateau breaks
-  float fw = max(fwidth(w), 1e-4);
-  float edge = 1.0 - smoothstep(0.4, 1.4, abs(w - 0.5) / fw);
-  col = mix(col, uInk, edge * 0.55 * step(0.02, uWordAmt));
+  // the plateau: flat, clean paper, bevel lit from the north-west (texture-space gradient of the shoulder)
+  vec2 tx = 1.5 / uRes;
+  float gx = texture2D(uWord, vUv + vec2(tx.x, 0.0)).g - texture2D(uWord, vUv - vec2(tx.x, 0.0)).g;
+  float gy = texture2D(uWord, vUv + vec2(0.0, tx.y)).g - texture2D(uWord, vUv - vec2(0.0, tx.y)).g;
+  float bevel = dot(vec2(gx, gy), normalize(vec2(0.7, -0.7))) * 3.2 * uWordAmt;
+  vec3 plateCol = mix(uPaper, uOchre, 0.07 + 0.10 * uDark) * (1.04 - uDark * 0.03);
+  plateCol *= 1.0 + clamp(bevel, -0.12, 0.07);
+  col = mix(col, plateCol, plate);
+
+  // cast shadow on the lowland side (south-east)
+  float castSh = texture2D(uWord, vUv + vec2(-0.0035, 0.0035 * uRes.x / uRes.y)).g * uWordAmt;
+  col *= 1.0 - 0.10 * castSh * (1.0 - plate);
+
+  // a single inset plateau contour and the cliff hairline in ink
+  float edge = 1.0 - smoothstep(0.35, 1.25, abs(wt.g - 0.5) / fwG);
+  float inset = (1.0 - smoothstep(0.3, 1.1, abs(wt.g - 0.86) / fwG)) * plate;
+  col = mix(col, uInk, edge * 0.85 * wA * uWordAmt);
+  col = mix(col, uContour, inset * 0.7);
 
   // paper fibre
   col += (hash12(floor(frag)) - 0.5) * 0.028;
@@ -147,14 +164,20 @@ function srgb(c: THREE.Color) {
   return c.clone().convertLinearToSRGB()
 }
 
+/**
+ * Rasterises the wordmark into two channels at CSS resolution:
+ * G = tight blur (its 0.5 level is the glyph outline; also drives bevel + inset contour),
+ * B = wide blur (the terrain footing the letters rise out of).
+ */
 function drawWordmark(canvas: HTMLCanvasElement, text: string, w: number, h: number) {
-  const k = 0.5
+  const k = Math.min(1, 2048 / Math.max(w, h))
   canvas.width = Math.max(2, Math.round(w * k))
   canvas.height = Math.max(2, Math.round(h * k))
   const ctx = canvas.getContext('2d')
   if (!ctx) return
   const W = canvas.width
   const H = canvas.height
+  ctx.globalCompositeOperation = 'source-over'
   ctx.fillStyle = '#000'
   ctx.fillRect(0, 0, W, H)
 
@@ -162,25 +185,28 @@ function drawWordmark(canvas: HTMLCanvasElement, text: string, w: number, h: num
   const narrow = W / H < 0.9
   const lines = narrow ? text.split(' ') : [text]
   ctx.font = `700 100px ${family}`
+  ctx.letterSpacing = '-4px'
   const widest = Math.max(...lines.map((l) => ctx.measureText(l).width))
-  let size = (100 * (W * (narrow ? 0.8 : 0.76))) / widest
-  size = Math.min(size, (H * (narrow ? 0.26 : 0.36)) / (lines.length * 0.82))
+  let size = (100 * (W * (narrow ? 0.84 : 0.78))) / widest
+  size = Math.min(size, (H * (narrow ? 0.24 : 0.36)) / (lines.length * 0.82))
   ctx.font = `700 ${size}px ${family}`
+  ctx.letterSpacing = `${-size * 0.04}px`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const lineH = size * 0.92
+  const lineH = size * 0.9
   const cy = H * (narrow ? 0.4 : 0.43)
   const y0 = cy - ((lines.length - 1) * lineH) / 2
+  const draw = () => lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + i * lineH))
 
-  ctx.fillStyle = '#fff'
-  // soft shoulder first (becomes the slope), then a firmer core
-  ctx.filter = `blur(${Math.max(1, size * 0.05)}px)`
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + i * lineH))
-  ctx.filter = `blur(${Math.max(0.5, size * 0.015)}px)`
-  ctx.globalAlpha = 0.6
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + i * lineH))
-  ctx.globalAlpha = 1
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.fillStyle = '#0000ff'
+  ctx.filter = `blur(${Math.max(2, size * 0.14)}px)`
+  draw()
+  ctx.fillStyle = '#00ff00'
+  ctx.filter = `blur(${Math.max(1, size * 0.022)}px)`
+  draw()
   ctx.filter = 'none'
+  ctx.globalCompositeOperation = 'source-over'
 }
 
 export function TerrainCanvas({

@@ -36,8 +36,8 @@ export function BaseCamp() {
           Planning the next survey?
         </h2>
         <p className="text-muted-foreground relative mt-5 max-w-xl font-serif text-[1.2rem] leading-snug md:text-[1.35rem]">
-          Interested in robust SAP BTP architectures or Clean Core strategies? Currently open for inhouse &amp; consulting
-          work (BTP / Architecture).
+          Interested in robust SAP BTP architectures or Clean Core strategies? Currently open for inhouse &amp;
+          consulting work (BTP / Architecture).
         </p>
         <div className="relative mt-8 flex flex-wrap gap-3">
           <a
