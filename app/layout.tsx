@@ -1,20 +1,36 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Alegreya_Sans, Cormorant } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
-import { ParticleBackground } from '@/components/ui/particle-background'
 import { GlobalEffects } from '@/components/ui/global-effects'
 import { StructuredData } from '@/components/ui/structured-data'
-import { clsx } from 'clsx'
+import { SmoothScroll } from '@/components/ui/smooth-scroll'
+import { cn } from '@/lib/utils'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({
+const display = Cormorant({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-display-face',
+  style: ['normal', 'italic'],
   display: 'swap',
 })
+
+const text = Alegreya_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-text',
+  display: 'swap',
+})
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ebe5da' },
+    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+  ],
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nilslutz.de'),
@@ -88,20 +104,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn(display.variable, text.variable)}>
       <head>
+        {/* Marks JS as available so the one orchestrated intro can start from hidden (CSS reveals it anyway after 4s). */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
         <StructuredData />
       </head>
-      <body
-        className={clsx(
-          inter.variable,
-          'bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300'
-        )}
-      >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {/* Particle Background - Global */}
-          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
-          {/* Global Effects (Matrix Easter Egg) */}
+      <body className="bg-background text-foreground min-h-screen font-sans text-[17px] leading-relaxed">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+          <SmoothScroll />
           <GlobalEffects />
           <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>

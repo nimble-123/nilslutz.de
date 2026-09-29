@@ -1,9 +1,10 @@
-'use client'
-
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
-import { motion } from 'framer-motion'
+import { PageHeader } from '@/components/ui/page-header'
 import { Laptop, Code2, Package, Cloud, Rocket, Server, Boxes } from 'lucide-react'
+import { metadata as toolsMetadata } from './metadata'
+
+export const metadata = toolsMetadata
 
 const categories = [
   {
@@ -244,64 +245,43 @@ export default function UsesPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-4xl space-y-12">
-          {/* Header */}
-          <div className="space-y-4 text-center">
-            <h1 className="text-4xl font-bold tracking-tight">What I Use</h1>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-              Hardware, software, and tools for SAP BTP development. Optimized for Clean Core, CAP, and Side-by-Side
-              Extensions.
-            </p>
-          </div>
+      <main className="flex-1 px-4 pt-32 md:px-8 md:pt-44">
+        <div className="mx-auto max-w-[88rem] space-y-24">
+          <PageHeader
+            room="Room 04 — Inventory"
+            title="What I Use"
+            lead="Hardware, software, and tools for SAP BTP development. Optimized for Clean Core, CAP, and Side-by-Side Extensions."
+          />
 
-          {/* Categories */}
-          <div className="space-y-16">
-            {categories.map((category, categoryIndex) => (
-              <motion.section
-                key={category.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: categoryIndex * 0.1 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center gap-3">
-                  <category.icon className="text-primary h-7 w-7" />
-                  <h2 className="text-2xl font-bold tracking-tight">{category.title}</h2>
+          <div className="space-y-20">
+            {categories.map((category, ci) => (
+              <section key={category.title} className="grid gap-8 lg:grid-cols-12">
+                <div className="lg:col-span-4">
+                  <p className="label-caps text-muted-foreground flex items-center gap-3 tabular-nums">
+                    <category.icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+                    Vitrine {String(ci + 1).padStart(2, '0')}
+                  </p>
+                  <h2 className="font-display mt-3 text-[2.2rem] leading-tight font-light">{category.title}</h2>
                 </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {category.items.map((item, itemIndex) => (
-                    <motion.div
+                <ul className="border-border border-t lg:col-span-8">
+                  {category.items.map((item) => (
+                    <li
                       key={item.name}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: itemIndex * 0.05 }}
-                      className="glass-card group rounded-xl p-6 transition-all hover:scale-[1.02]"
+                      className="border-border grid gap-x-8 gap-y-1 border-b py-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="text-3xl">{item.emoji}</span>
-                        <div className="flex-1 space-y-1">
-                          <h3 className="leading-tight font-semibold">{item.name}</h3>
-                          <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                        </div>
-                      </div>
-                    </motion.div>
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-muted-foreground text-[0.97rem]">{item.description}</p>
+                    </li>
                   ))}
-                </div>
-              </motion.section>
+                </ul>
+              </section>
             ))}
           </div>
 
-          {/* Footer Note */}
-          <div className="glass-card rounded-xl p-8 text-center">
-            <p className="text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">Note:</strong> This list reflects my personal preferences. I update it
-              occasionally when my setup changes.
-            </p>
-          </div>
+          <p className="text-muted-foreground border-brass max-w-2xl border-l pl-5 italic">
+            <strong className="text-foreground not-italic">Note:</strong> This list reflects my personal preferences. I
+            update it occasionally when my setup changes.
+          </p>
         </div>
       </main>
       <Footer />

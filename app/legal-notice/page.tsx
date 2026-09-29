@@ -1,6 +1,8 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { Metadata } from 'next'
+import { proseClass } from '@/components/ui/page-header'
+import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Legal Notice',
@@ -15,8 +17,8 @@ export default function ImpressumPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="prose dark:prose-invert mx-auto max-w-2xl">
+      <main className="flex-1 px-4 pt-32 md:px-8 md:pt-44">
+        <div className={cn(proseClass, 'mx-auto max-w-[46rem] prose-h1:font-light prose-h1:text-[clamp(2.6rem,6vw,4.4rem)]')}>
           <h1>Impressum</h1>
 
           <h2>Angaben gemäß § 5 TMG</h2>

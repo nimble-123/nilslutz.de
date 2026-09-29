@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
+import { ArrowRight } from 'lucide-react'
 import { CaseStudy } from '@/lib/content'
 import { cn } from '@/lib/utils'
 
@@ -18,65 +19,73 @@ export function CaseStudyList({ items }: { items: CaseStudy[] }) {
 
   return (
     <div className="space-y-12">
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-2" role="group" aria-label="Filter case studies">
         {filters.map((f) => (
           <button
             key={f}
+            type="button"
             onClick={() => setFilter(f)}
+            aria-pressed={filter === f}
             className={cn(
-              'rounded-full px-4 py-2 text-sm font-medium transition-all',
-              filter === f
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              'label-caps relative inline-flex h-11 items-center px-3 transition-colors duration-150',
+              filter === f ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {f}
+            {filter === f && (
+              <motion.span
+                layoutId="filter-underline"
+                className="bg-brass absolute inset-x-3 bottom-2.5 h-px"
+                transition={{ type: 'spring', duration: 0.35, bounce: 0 }}
+              />
+            )}
           </button>
         ))}
+        <span className="label-caps text-muted-foreground ml-auto tabular-nums" aria-live="polite">
+          {String(filteredItems.length).padStart(2, '0')} works
+        </span>
       </div>
 
-      {/* Grid */}
-      <motion.div layout className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <AnimatePresence mode="popLayout">
+      <motion.ol layout className="border-border border-t">
+        <AnimatePresence mode="popLayout" initial={false}>
           {filteredItems.map((study) => (
-            <motion.div
+            <motion.li
               key={study.slug}
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className="glass-card group relative flex flex-col justify-between rounded-xl p-6"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6, transition: { duration: 0.15, ease: 'easeOut' } }}
+              transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
+              className="border-border border-b"
             >
-              <div className="mb-4 space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {study.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="focus:ring-ring bg-secondary text-secondary-foreground inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <h3 className="group-hover:text-primary text-2xl font-bold tracking-tight transition-colors">
-                  <Link href={`/work/${study.slug}`}>
-                    <span className="absolute inset-0" />
-                    {study.title}
-                  </Link>
-                </h3>
-                <p className="text-muted-foreground line-clamp-3">{study.summary}</p>
-              </div>
-
-              <div className="text-muted-foreground mt-auto flex items-center justify-between border-t pt-4 text-sm">
-                <span>{study.role}</span>
-                <span>{study.period}</span>
-              </div>
-            </motion.div>
+              <Link
+                href={`/work/${study.slug}`}
+                className="group hover:bg-foreground/[0.025] grid gap-x-8 gap-y-3 py-8 transition-colors duration-150 md:grid-cols-12 md:px-2"
+              >
+                <span className="md:col-span-7">
+                  <span className="label-caps text-muted-foreground block">{study.tags.slice(0, 3).join(' · ')}</span>
+                  <span className="font-display mt-3 block text-[2rem] leading-[1.06] md:text-[2.5rem]">
+                    <em className="font-light">{study.title}</em>
+                  </span>
+                  <span className="text-muted-foreground mt-3 line-clamp-3 block max-w-xl">{study.summary}</span>
+                </span>
+                <span className="text-muted-foreground text-[0.95rem] md:col-span-3 md:pt-8">
+                  <span className="text-foreground block">{study.role}</span>
+                  <span className="italic">{study.stack.slice(0, 3).join(', ')}</span>
+                </span>
+                <span className="flex items-center justify-between md:col-span-2 md:flex-col md:items-end md:justify-start md:pt-8">
+                  <span className="label-caps text-foreground tabular-nums">{study.period}</span>
+                  <ArrowRight
+                    className="text-brass-ink size-4 transition-transform duration-200 ease-out group-hover:translate-x-1 md:mt-4"
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                </span>
+              </Link>
+            </motion.li>
           ))}
         </AnimatePresence>
-      </motion.div>
+      </motion.ol>
     </div>
   )
 }
