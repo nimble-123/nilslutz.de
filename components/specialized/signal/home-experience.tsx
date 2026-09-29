@@ -126,26 +126,55 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
       const coreBody = SplitText.create('[data-split="core-body"]', { type: 'words' })
       const topoHead = SplitText.create('[data-split="topo-head"]', { type: 'chars,words' })
 
+      // The control-room HUD bows out once the page turns into reading matter
+      ScrollTrigger.create({
+        trigger: '#after',
+        start: 'top 20%',
+        onEnter: () => hudRoot?.setAttribute('data-off', ''),
+        onLeaveBack: () => hudRoot?.removeAttribute('data-off'),
+      })
+
       if (reduced) {
         state.converge = 1
         gsap.set('[data-intro]', { opacity: 1 })
-        const toggle = (sel: string, morph: number, idx: number) =>
+        if (hud.fps) hud.fps.textContent = '—'
+        // No scrubbing: each diagram simply holds still while its copy is read (a plain sticky pin),
+        // and the calm starfield fills the gaps between scenes.
+        const show = (morph: number, idx: number) => {
+          state.morph = morph
+          setScene(idx)
+          renderStatic()
+        }
+        const calm = () => show(3, sceneIndex)
+        ScrollTrigger.create({
+          trigger: '#hero',
+          start: 'top top',
+          end: 'bottom 30%',
+          onLeave: calm,
+          onEnterBack: () => show(0, 0),
+        })
+        const hold = (sel: string, morph: number, idx: number) =>
           ScrollTrigger.create({
             trigger: sel,
-            start: 'top 55%',
-            end: 'bottom 45%',
-            onToggle: (self) => {
-              if (self.isActive) {
-                state.morph = morph
-                setScene(idx)
-                renderStatic()
-              }
-            },
+            start: 'top top',
+            end: '+=60%',
+            pin: true,
+            onEnter: () => show(morph, idx),
+            onEnterBack: () => show(morph, idx),
+            onLeave: calm,
+            onLeaveBack: calm,
           })
-        toggle('#hero', 0, 0)
-        toggle('#core', 1, 1)
-        toggle('#topology', 2, 2)
-        toggle('#after', 3, 3)
+        hold('#core', 1, 1)
+        hold('#topology', 2, 2)
+        ScrollTrigger.create({ trigger: '#after', start: 'top 60%', onEnter: () => show(3, 3) })
+        // The wordmark still travels with the page (plain scroll tracking, no animation)
+        const onScroll = () => {
+          if (state.morph !== 0) return
+          state.heroShift = Math.min(window.scrollY, window.innerHeight)
+          renderStatic()
+        }
+        window.addEventListener('scroll', onScroll, { passive: true })
+        cleanups.push(() => window.removeEventListener('scroll', onScroll))
         renderStatic()
         return
       }
@@ -247,13 +276,6 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
         scrollTrigger: { trigger: '#after', start: 'top bottom', end: 'bottom top', scrub: true },
       })
       ScrollTrigger.create({ trigger: '#hero', start: 'top top', end: 'bottom 40%', onEnterBack: () => setScene(0) })
-      // The control-room HUD bows out once the page turns into reading matter
-      ScrollTrigger.create({
-        trigger: '#after',
-        start: 'top 20%',
-        onEnter: () => hudRoot?.setAttribute('data-off', ''),
-        onLeaveBack: () => hudRoot?.removeAttribute('data-off'),
-      })
 
       cleanups.push(() => {
         eyebrow.revert()
@@ -310,8 +332,7 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
         topoLabels.forEach((el) => {
           const key = el.dataset.node
           const i = Number(key)
-          const p =
-            key === 'cap-p' ? t.producers[0] : key === 'cap-c' ? t.consumers[0] : i < 0 ? t.broker : all[i]
+          const p = key === 'cap-p' ? t.producers[0] : key === 'cap-c' ? t.consumers[0] : i < 0 ? t.broker : all[i]
           if (p) el.style.transform = `translate3d(${p[0]}px, ${p[1]}px, 0)`
         })
       }
@@ -432,7 +453,6 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
     <div ref={rootRef} className="relative">
       {/* The event mesh */}
       <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 h-full w-full" />
-      
 
       {/* Label layers that track the 3D scene */}
       <div
@@ -577,7 +597,10 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
       </section>
 
       {/* ------------------------------------------------------------ CLEAN CORE */}
-      <section id="core" className="relative z-[3] flex h-[100svh] items-end px-4 pb-10 md:items-center md:px-10 md:pb-0">
+      <section
+        id="core"
+        className="relative z-[3] flex h-[100svh] items-end px-4 pb-10 md:items-center md:px-10 md:pb-0"
+      >
         <div className="max-w-xl">
           <p className="label-mono text-sodium mb-6">02 — Clean Core</p>
           <h2 data-split="core-head" className="font-serif text-[2.6rem] leading-[0.98] md:text-7xl">

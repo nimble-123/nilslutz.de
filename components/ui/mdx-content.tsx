@@ -8,10 +8,16 @@ interface MDXContentProps {
   source: string
 }
 
+// The page header already owns the single <h1>; a leading `# Title` inside MDX becomes a section heading.
+const components = {
+  h1: (props: React.ComponentProps<'h2'>) => <h2 {...props} />,
+}
+
 export async function MDXContent({ source }: MDXContentProps) {
   return (
     <MDXRemote
       source={source}
+      components={components}
       options={{
         mdxOptions: {
           remarkPlugins: [remarkGfm],

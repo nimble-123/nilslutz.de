@@ -162,8 +162,8 @@ export default function AboutPage() {
             <div className="md:col-span-7 md:col-start-6">
               <p className="text-foreground/85 text-lg leading-relaxed">
                 Active member of the <strong className="text-foreground">SAP Community</strong> with{' '}
-                <strong className="text-foreground">249 badges</strong> earned through tutorials, contributions, and event
-                participation. Regular participant in <strong className="text-foreground">Devtoberfest</strong>{' '}
+                <strong className="text-foreground">249 badges</strong> earned through tutorials, contributions, and
+                event participation. Regular participant in <strong className="text-foreground">Devtoberfest</strong>{' '}
                 (2021-2025), achieving finalist status in 2021.
               </p>
               <dl className="border-hairline mt-10 grid grid-cols-3 border-y">
@@ -172,7 +172,10 @@ export default function AboutPage() {
                   ['5', 'Devtoberfest Years'],
                   ['Finalist', 'Devtoberfest 2021'],
                 ].map(([v, k]) => (
-                  <div key={k} className="border-hairline border-r py-6 pr-4 last:border-r-0 [&:not(:first-child)]:pl-4">
+                  <div
+                    key={k}
+                    className="border-hairline border-r py-6 pr-4 last:border-r-0 [&:not(:first-child)]:pl-4"
+                  >
                     <dd className="text-sodium font-serif text-4xl tabular-nums md:text-5xl">{v}</dd>
                     <dt className="label-mono text-muted-foreground mt-2">{k}</dt>
                   </div>
@@ -181,7 +184,10 @@ export default function AboutPage() {
               <ul className="mt-8 space-y-2">
                 {achievements.map((a) => (
                   <li key={a} className="text-foreground/80 flex items-baseline gap-3 text-sm">
-                    <span className="bg-sodium/70 inline-block h-px w-3 shrink-0 translate-y-[-3px]" aria-hidden="true" />
+                    <span
+                      className="bg-sodium/70 inline-block h-px w-3 shrink-0 translate-y-[-3px]"
+                      aria-hidden="true"
+                    />
                     {a}
                   </li>
                 ))}

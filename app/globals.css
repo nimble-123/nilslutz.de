@@ -213,8 +213,7 @@ html.lenis body {
   pointer-events: none;
   background:
     radial-gradient(1200px 520px at 88% -8%, rgb(255 138 43 / 0.1), transparent 60%),
-    radial-gradient(900px 600px at 0% 110%, rgb(74 96 140 / 0.14), transparent 60%),
-    var(--ink);
+    radial-gradient(900px 600px at 0% 110%, rgb(74 96 140 / 0.14), transparent 60%), var(--ink);
 }
 .signal-backdrop::before,
 .signal-backdrop::after {
@@ -338,6 +337,8 @@ pre {
 
 pre code {
   font-family: var(--font-mono);
+  /* Show code exactly as typed: no ~> or => ligatures */
+  font-variant-ligatures: none;
   font-size: 0.85rem;
   line-height: 1.7;
   display: grid;

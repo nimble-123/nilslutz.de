@@ -96,5 +96,9 @@ export function shortTitle(title: string, max = 34): string {
 
 /** Decode the few HTML entities that appear in content frontmatter (e.g. `&lt;`). */
 export function decodeEntities(s: string): string {
-  return s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"')
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
 }
