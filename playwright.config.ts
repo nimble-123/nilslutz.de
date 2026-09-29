@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 3000
+// Override with PORT=xxxx when 3000 is taken (e.g. parallel worktrees)
+const PORT = Number(process.env.PORT ?? 3000)
 const baseURL = `http://localhost:${PORT}`
 
 /**
@@ -24,7 +25,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run start',
+    command: `npm run build && npm run start -- -p ${PORT}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

@@ -27,7 +27,7 @@ export function Footer() {
           <p className="label text-background/60 mb-6">(End) — Get in touch</p>
           <a
             href={`mailto:${profile.socials.email}`}
-            className="group hover:text-signal inline-flex items-start gap-2 text-[clamp(1.9rem,6.4vw,6rem)] leading-[0.9] font-black tracking-[-0.02em] break-all [font-stretch:112.5%] transition-colors duration-150 ease-out"
+            className="group hover:text-signal inline-flex items-start gap-2 text-[clamp(1.9rem,4.4vw,5rem)] leading-[0.9] font-black tracking-[-0.02em] [overflow-wrap:anywhere] [font-stretch:100%] transition-colors duration-150 ease-out"
           >
             {profile.socials.email}
             <ArrowUpRight

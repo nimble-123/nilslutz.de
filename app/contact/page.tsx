@@ -72,7 +72,7 @@ export default function ContactPage() {
 
           <aside className="col-span-4 md:col-span-4 md:col-start-9">
             <div className="md:sticky md:top-24">
-              <RiveMachine caption="Fig. 1 — Feed it a request" />
+              <RiveMachine className="bg-signal" caption="Fig. 1 — Feed it a request" />
               <p className="text-muted-foreground mt-3 text-sm">
                 Press “Insert data” — the machine processes it. Your actual request goes to{' '}
                 <a

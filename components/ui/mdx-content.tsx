@@ -4,6 +4,11 @@ import remarkGfm from 'remark-gfm'
 import { createHighlighter } from 'shiki'
 import { customLanguages } from '@/lib/shiki-config'
 
+// The page header owns the only <h1>; a `# Heading` inside an MDX body is demoted to <h2>
+const components = {
+  h1: (props: React.ComponentPropsWithoutRef<'h2'>) => <h2 {...props} />,
+}
+
 interface MDXContentProps {
   source: string
 }
@@ -12,6 +17,7 @@ export async function MDXContent({ source }: MDXContentProps) {
   return (
     <MDXRemote
       source={source}
+      components={components}
       options={{
         mdxOptions: {
           remarkPlugins: [remarkGfm],
