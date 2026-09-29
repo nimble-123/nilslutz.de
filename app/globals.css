@@ -166,6 +166,13 @@ html.lenis body {
 
 @layer utilities {
   /* Mono data label: the control-room voice */
+  /* Keeps overlay labels legible where they cross bright particle streams */
+  .label-halo {
+    text-shadow:
+      0 0 6px var(--ink),
+      0 0 14px var(--ink);
+  }
+
   .label-mono {
     font-family: var(--font-mono);
     font-size: 0.6875rem;

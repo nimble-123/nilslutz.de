@@ -341,8 +341,11 @@ export class EventMesh {
     return [(this.tmp.x * 0.5 + 0.5) * this.viewW, (-this.tmp.y * 0.5 + 0.5) * this.viewH]
   }
 
-  satelliteScreen(i: number): [number, number] {
-    return this.project(satellitePosition(i, this.uniforms.uTime.value as number, this.core))
+  /** Screen position of satellite `i`, plus its depth relative to the core centre (negative = behind). */
+  satelliteScreen(i: number): { x: number; y: number; z: number } {
+    const p = satellitePosition(i, this.uniforms.uTime.value as number, this.core)
+    const [x, y] = this.project(p)
+    return { x, y, z: p[2] - this.core.center[2] }
   }
 
   coreScreen(): { x: number; y: number; r: number } {

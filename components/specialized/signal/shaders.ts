@@ -165,12 +165,12 @@ void main() {
   // ---------------------------------------------------------------- broker (pointer)
   vec2 dp = pos.xy - uPointer.xy;
   float r2 = dot(dp, dp);
-  float infl = exp(-r2 / 0.18) * uPointer.z;
+  float infl = exp(-r2 / 0.3) * uPointer.z;
   vec2 dirv = dp / (sqrt(r2) + 1e-4);
-  pos.xy += dirv * infl * 0.24 + vec2(-dirv.y, dirv.x) * infl * 0.2;
+  pos.xy += dirv * infl * 0.3 + vec2(-dirv.y, dirv.x) * infl * 0.24;
   pos.xy += uPointerVel * infl * 0.35;
   // A faint halo just outside the broker: the re-routed stream lights up
-  float halo = exp(-pow((sqrt(r2) - 0.5) / 0.22, 2.0)) * uPointer.z;
+  float halo = exp(-pow((sqrt(r2) - 0.62) / 0.2, 2.0)) * uPointer.z;
   float glow = infl * 0.8 + halo * 0.35;
 
   // ---------------------------------------------------------------- publish pulses

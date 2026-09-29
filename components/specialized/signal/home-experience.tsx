@@ -58,6 +58,7 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
       scene: q('[data-hud="scene"]'),
       sceneIdx: q('[data-hud="scene-idx"]'),
     }
+    const hudRoot = q('[data-hud-root]')
     const coreLabel = q('[data-core-label]')
     const satLabels = qa('[data-sat]')
     const topoLabels = qa('[data-node]')
@@ -224,7 +225,7 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
           ease: 'power3.out',
         })
         .from('[data-topo-copy]', { opacity: 0, y: 16, duration: 0.3 }, 0.2)
-        .from(topoLabels, { opacity: 0, filter: 'blur(4px)', duration: 0.3, stagger: 0.07 }, 0.35)
+        .from(topoLabels, { opacity: 0, filter: 'blur(4px)', duration: 0.25, stagger: 0.04 }, 0.2)
         .to({}, { duration: 0.5 })
 
       // ---- 4. Topology → Starfield: the stream calms down behind the quiet part of the page
@@ -233,8 +234,8 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
         ease: 'none',
         scrollTrigger: {
           trigger: '#after',
-          start: 'top 85%',
-          end: 'top 15%',
+          start: 'top bottom',
+          end: 'top 30%',
           scrub: 1,
           onToggle: (s) => s.isActive && setScene(3),
           onLeaveBack: () => setScene(2),
@@ -246,6 +247,13 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
         scrollTrigger: { trigger: '#after', start: 'top bottom', end: 'bottom top', scrub: true },
       })
       ScrollTrigger.create({ trigger: '#hero', start: 'top top', end: 'bottom 40%', onEnterBack: () => setScene(0) })
+      // The control-room HUD bows out once the page turns into reading matter
+      ScrollTrigger.create({
+        trigger: '#after',
+        start: 'top 20%',
+        onEnter: () => hudRoot?.setAttribute('data-off', ''),
+        onLeaveBack: () => hudRoot?.removeAttribute('data-off'),
+      })
 
       cleanups.push(() => {
         eyebrow.revert()
@@ -281,17 +289,29 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
       if (coreVis > 0.01) {
         const c = mesh.coreScreen()
         if (coreLabel) coreLabel.style.transform = `translate3d(${c.x}px, ${c.y}px, 0) translate(-50%, -50%)`
+        const vw = window.innerWidth
         satLabels.forEach((el, i) => {
-          const [x, y] = mesh!.satelliteScreen(i)
-          el.style.transform = `translate3d(${x}px, ${y}px, 0)`
+          const s = mesh!.satelliteScreen(i)
+          // Label sits radially outside its satellite, on whichever side has room
+          const off = c.r * 0.24 + 6
+          const w = el.offsetWidth
+          const side = s.x < c.x ? 'left' : 'right'
+          const x = Math.max(12, Math.min(vw - 12 - w, side === 'right' ? s.x + off : s.x - off - w))
+          if (el.dataset.side !== side) el.dataset.side = side
+          el.style.transform = `translate3d(${x}px, ${s.y}px, 0) translateY(-50%)`
+          // Satellites passing behind the core dim, so labels never float over the sphere
+          const behind = s.z < 0 && Math.hypot(s.x - c.x, s.y - c.y) < c.r * 1.1
+          el.style.opacity = behind ? '0.25' : '1'
         })
       }
       if (topoVis > 0.01) {
         const t = mesh.topologyScreen()
         const all = [...t.producers, ...t.consumers]
         topoLabels.forEach((el) => {
-          const i = Number(el.dataset.node)
-          const p = i < 0 ? t.broker : all[i]
+          const key = el.dataset.node
+          const i = Number(key)
+          const p =
+            key === 'cap-p' ? t.producers[0] : key === 'cap-c' ? t.consumers[0] : i < 0 ? t.broker : all[i]
           if (p) el.style.transform = `translate3d(${p[0]}px, ${p[1]}px, 0)`
         })
       }
@@ -301,11 +321,17 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
     let fpsAcc = 0
     let fpsFrames = 0
     let nextPulse = 3.2
+    let lastMove = 0
     const startLoop = () => {
       const tick = (time: number) => {
         if (!mesh || document.hidden) return
         const dt = last ? Math.min(0.05, time - last) : 0.016
         last = time
+        // An idle cursor stops acting as a broker, so a parked mouse never leaves a hole in the diagrams
+        if (lastMove && time - lastMove > 1.4) {
+          mesh.releasePointer()
+          lastMove = 0
+        }
         mesh.render(time, dt)
         updateLabels()
 
@@ -338,6 +364,7 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
       // Pointer / finger = broker
       const move = (x: number, y: number) => {
         mesh?.setPointer(x, y, 1)
+        lastMove = gsap.ticker.time
         if (hud.ptr) {
           const nx = (x / window.innerWidth) * 2 - 1
           const ny = 1 - (y / window.innerHeight) * 2
@@ -419,9 +446,13 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
           <span className="label-mono text-muted-foreground block">standard · untouched</span>
         </div>
         {SATELLITES.map((s, i) => (
-          <div key={s} data-sat={i} className="absolute top-0 left-0 will-change-transform">
-            <span className="label-mono text-sodium ml-3 flex -translate-y-1/2 items-center gap-2 whitespace-nowrap">
-              <span className="bg-sodium/60 h-px w-4" />
+          <div
+            key={s}
+            data-sat={i}
+            className="group/sat label-halo absolute top-0 left-0 hidden transition-opacity duration-300 will-change-transform md:block"
+          >
+            <span className="label-mono text-sodium flex items-center gap-2 whitespace-nowrap group-data-[side=left]/sat:flex-row-reverse">
+              <span className="bg-sodium/60 h-px w-3 md:w-5" />
               {s}
             </span>
           </div>
@@ -434,11 +465,25 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
         style={{ visibility: 'hidden' }}
       >
         <div data-node={-1} className="absolute top-0 left-0 will-change-transform">
-          <span className="label-mono text-sodium absolute top-12 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
+          <span className="label-mono label-halo text-sodium absolute top-0 left-10 -translate-y-1/2 whitespace-nowrap md:top-14 md:left-1/2 md:-translate-x-1/2 md:translate-y-0 md:text-center">
             SAP Event Mesh
             <span className="text-muted-foreground block">broker</span>
           </span>
         </div>
+        {producers.length > 0 && (
+          <div data-node="cap-p" className="absolute top-0 left-0 hidden will-change-transform md:block">
+            <span className="label-mono text-muted-foreground absolute bottom-10 left-0 -translate-x-1/2 whitespace-nowrap">
+              Producers
+            </span>
+          </div>
+        )}
+        {consumers.length > 0 && (
+          <div data-node="cap-c" className="absolute top-0 left-0 hidden will-change-transform md:block">
+            <span className="label-mono text-muted-foreground absolute bottom-10 left-0 -translate-x-1/2 whitespace-nowrap">
+              Consumers
+            </span>
+          </div>
+        )}
         {cases.map((c, i) => {
           const isProducer = i < producers.length
           return (
@@ -446,8 +491,9 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
               <Link
                 href={`/work/${c.slug}`}
                 className={cn(
-                  'group pointer-events-auto absolute top-2 left-1/2 flex min-h-11 w-max min-w-11 -translate-x-1/2 items-center justify-center gap-3',
-                  'md:top-0 md:translate-x-0 md:-translate-y-1/2',
+                  'group label-halo pointer-events-auto absolute left-1/2 flex min-h-11 w-max min-w-11 -translate-x-1/2 items-center justify-center gap-3',
+                  isProducer ? 'bottom-1' : 'top-1',
+                  'md:top-0 md:bottom-auto md:translate-x-0 md:-translate-y-1/2',
                   isProducer ? 'md:right-4 md:left-auto md:flex-row-reverse md:text-right' : 'md:left-4 md:text-left'
                 )}
               >
@@ -468,7 +514,7 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
         </p>
 
         <div className="flex flex-1 flex-col justify-center">
-          <h1 className="text-foreground font-serif text-[36vw] leading-[0.8] tracking-[-0.035em] md:text-[22vw] md:leading-[0.78]">
+          <h1 className="text-foreground font-serif text-[min(50vw,30svh)] leading-[0.8] tracking-[-0.035em] md:text-[min(27vw,54svh)] md:leading-[0.78]">
             <span data-word className="wordmark-ghost inline-block">
               Nils
               <i data-baseline className="inline-block h-0 w-0 align-baseline" />
@@ -552,6 +598,7 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
               <span className="bg-sodium inline-block size-2 rounded-full" />
               Extensions · side-by-side on BTP
             </li>
+            <li className="text-sodium/80 pl-5 md:hidden">{SATELLITES.join(' · ')}</li>
             <li className="flex items-center gap-3">
               <span className="bg-sodium/50 inline-block h-px w-2" />
               Released APIs · the only way in
@@ -698,7 +745,8 @@ export function HomeExperience({ cases, notes }: { cases: HomeCase[]; notes: Hom
       {/* Fixed control-room HUD */}
       <div
         aria-hidden="true"
-        className="label-mono text-muted-foreground pointer-events-none fixed top-24 right-10 z-[4] hidden items-center gap-3 md:flex"
+        data-hud-root
+        className="label-mono text-muted-foreground pointer-events-none fixed top-24 right-10 z-[4] hidden items-center gap-3 transition-opacity duration-300 ease-out data-off:opacity-0 md:flex"
       >
         <span>Scene</span>
         <span data-hud="scene-idx" className="text-sodium tabular-nums">

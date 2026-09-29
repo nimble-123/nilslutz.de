@@ -38,11 +38,11 @@ export type CoreLayout = { center: Vec3; radius: number; ringRadius: number }
 /** The Clean Core sphere: right of the copy on wide screens, above it on phones. */
 export function coreLayout(world: World): CoreLayout {
   if (world.vertical) {
-    const radius = Math.min(world.w * 0.2, world.h * 0.12)
-    return { center: [0, world.h * 0.2, 0], radius, ringRadius: radius * 1.9 }
+    const radius = Math.min(world.w * 0.19, world.h * 0.12)
+    return { center: [0, world.h * 0.22, 0], radius, ringRadius: radius * 1.75 }
   }
-  const radius = Math.min(world.h * 0.2, world.w * 0.13)
-  return { center: [world.w * 0.2, -world.h * 0.02, 0], radius, ringRadius: radius * 1.85 }
+  const radius = Math.min(world.h * 0.155, world.w * 0.1)
+  return { center: [world.w * 0.165, -world.h * 0.01, 0], radius, ringRadius: radius * 1.8 }
 }
 
 function rotateX([x, y, z]: Vec3, a: number): Vec3 {
