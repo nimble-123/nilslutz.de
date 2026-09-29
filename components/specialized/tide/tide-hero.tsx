@@ -42,7 +42,10 @@ export function TideHero() {
     const renderOnce = () => engine && ready && engine.render(1 / 60)
 
     const tick = (_time: number, deltaMs: number) => {
-      if (!engine || !ready || !visible || !pageVisible) return
+      if (!engine || !ready || !pageVisible) return
+      const r = section.getBoundingClientRect()
+      visible = r.bottom > 0 && r.top < window.innerHeight
+      if (!visible) return
       engine.render(deltaMs / 1000)
     }
 
@@ -159,15 +162,11 @@ export function TideHero() {
         return
       }
 
-      // Pause when offscreen or the tab is hidden
-      const io = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting), { threshold: 0 })
-      io.observe(section)
+      // Pause when the tab is hidden; offscreen is checked per tick (the pin reparents the
+      // section, which makes IntersectionObserver unreliable here).
       const onVis = () => (pageVisible = document.visibilityState === 'visible')
       document.addEventListener('visibilitychange', onVis)
-      cleanups.push(() => {
-        io.disconnect()
-        document.removeEventListener('visibilitychange', onVis)
-      })
+      cleanups.push(() => document.removeEventListener('visibilitychange', onVis))
 
       gsap.ticker.add(tick)
       cleanups.push(() => gsap.ticker.remove(tick))
@@ -222,27 +221,30 @@ export function TideHero() {
         section.removeEventListener('touchend', onLeave)
       })
 
+      engine.tide = engine.tideTarget = progress
+      playIntro(engine)
+    }
+
+    // ---- scroll: the tide goes out. Created synchronously so later pins measure after it.
+    let progress = 0
+    if (!reduced) {
       ctx.add(() => {
-        const eng = engine!
-
-        playIntro(eng)
-
-        // ---- scroll: the tide goes out
-        const scene = gsap.timeline({
-          defaults: { ease: 'none' },
-          scrollTrigger: {
-            trigger: section,
-            start: 'top top',
-            end: '+=180%',
-            pin: true,
-            scrub: true,
-            onUpdate: (self) => {
-              eng.tideTarget = self.progress
-              setGauge(self.progress)
+        gsap
+          .timeline({
+            defaults: { ease: 'none' },
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: '+=180%',
+              pin: true,
+              scrub: true,
+              onUpdate: (self) => {
+                progress = self.progress
+                if (engine) engine.tideTarget = progress
+                setGauge(progress)
+              },
             },
-          },
-        })
-        scene
+          })
           .to('[data-hero-hint]', { autoAlpha: 0, duration: 0.08 }, 0)
           .to('[data-hero-copy]', { autoAlpha: 0, y: -32, duration: 0.2 }, 0.45)
           .fromTo('[data-hero-after]', { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.2 }, 0.72)
@@ -285,7 +287,11 @@ export function TideHero() {
         <span className="sr-only"> — {profile.role}</span>
       </h1>
 
-      {/* soft scrim so the copy reads over moving water */}
+      {/* soft scrims so the header and copy read over moving water */}
+      <div
+        aria-hidden="true"
+        className="from-background/70 pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b to-transparent"
+      />
       <div
         aria-hidden="true"
         className="from-background/80 via-background/35 pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t to-transparent"
@@ -301,8 +307,8 @@ export function TideHero() {
               data-hero-line
               className="opsz-headline text-foreground text-[1.45rem] leading-[1.18] tracking-[-0.01em] md:text-[2rem]"
             >
-              I architect <em className="text-oxide font-normal">Clean-Core</em> compliant SAP solutions on BTP, CAP,
-              RAP &amp; Fiori — and set the standards they run on.
+              I architect <em className="text-oxide font-normal">Clean-Core</em>&nbsp;compliant SAP solutions on BTP,
+              CAP, RAP &amp; Fiori — and set the standards they run on.
             </p>
             <div data-hero-chunk className="mt-7 flex flex-wrap gap-3">
               <Link

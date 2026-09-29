@@ -43,6 +43,7 @@ export class TideEngine {
   private simW = 0
   private simH = 0
   private canSimulate: boolean
+  private floatTargets: boolean
 
   private dropMat: THREE.ShaderMaterial
   private updateMat: THREE.ShaderMaterial
@@ -91,8 +92,8 @@ export class TideEngine {
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 
     const ext = this.renderer.extensions
-    this.canSimulate =
-      !opts.reducedMotion && (ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float'))
+    this.floatTargets = ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')
+    this.canSimulate = !opts.reducedMotion && this.floatTargets
 
     const simUniforms = { uTex: { value: null as THREE.Texture | null }, uTexel: { value: new THREE.Vector2() } }
     this.dropMat = new THREE.ShaderMaterial({
@@ -316,7 +317,8 @@ export class TideEngine {
     const h = Math.max(2, Math.round(this.height * this.dpr * scale))
     this.clayTarget?.dispose()
     this.clayTarget = new THREE.WebGLRenderTarget(w, h, {
-      type: THREE.UnsignedByteType,
+      // 8-bit normals terrace visibly on gentle clay slopes
+      type: this.floatTargets ? THREE.HalfFloatType : THREE.UnsignedByteType,
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,
       depthBuffer: false,
@@ -340,7 +342,7 @@ export class TideEngine {
       this.crystals.dispose()
     }
     const area = (this.width * this.height) / (1440 * 900)
-    const count = Math.round((this.opts.mobile ? 900 : 2200) * Math.min(1.4, Math.max(0.5, area)))
+    const count = Math.round((this.opts.mobile ? 700 : 1600) * Math.min(1.4, Math.max(0.5, area)))
     const geo = new THREE.BoxGeometry(1, 1, 1)
     const offsets = new Float32Array(count * 3)
     const seeds = new Float32Array(count * 2)
@@ -358,8 +360,11 @@ export class TideEngine {
       return (seed - 1) / 2147483646
     }
 
+    // salt blooms: a few dozen patches rather than an even dusting
+    const blooms: Array<[number, number]> = Array.from({ length: 34 }, () => [rand(), 0.04 + rand() * 0.9])
+
     for (let i = 0; i < count; i++) {
-      const inGroove = this.grooveSamples.length > 0 && rand() < 0.42
+      const inGroove = this.grooveSamples.length > 0 && rand() < 0.68
       let x: number
       let y: number
       if (inGroove) {
@@ -368,14 +373,13 @@ export class TideEngine {
         y = g[1] + (rand() - 0.5) * 0.004
       } else {
         // clustered: salt blooms in patches
-        const cx = rand()
-        const cy = rand()
+        const [cx, cy] = blooms[Math.floor(rand() * blooms.length)]
         const r = rand() * rand() * 0.05
         const a = rand() * Math.PI * 2
         x = cx + Math.cos(a) * r
         y = cy + Math.sin(a) * r
       }
-      const px = (0.9 + Math.pow(rand(), 3) * (inGroove ? 5 : 7)) * this.dpr
+      const px = (0.8 + Math.pow(rand(), 4) * (inGroove ? 4 : 5)) * this.dpr
       offsets.set([x, y, px], i * 3)
       seeds.set([rand(), inGroove ? 1 : 0], i * 2)
       e.set(rand() * Math.PI, rand() * Math.PI, rand() * Math.PI)

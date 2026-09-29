@@ -99,7 +99,7 @@ export function LeftByTheTide({ notes }: { notes: DriftNote[] }) {
 
       <ol
         ref={trackRef}
-        className="mt-10 flex w-full snap-x snap-mandatory gap-6 overflow-x-auto px-4 pt-6 pb-10 [scrollbar-width:none] motion-safe:snap-none motion-safe:overflow-x-visible md:mt-14 md:gap-10 md:px-8 md:pl-[max(2rem,calc((100vw-1440px)/2+2rem))]"
+        className="mt-10 flex w-full snap-x snap-mandatory [scrollbar-width:none] gap-6 overflow-x-auto px-4 pt-6 pb-10 motion-safe:snap-none motion-safe:overflow-x-visible md:mt-14 md:gap-10 md:px-8 md:pl-[max(2rem,calc((100vw-1440px)/2+2rem))]"
       >
         {notes.map((note, i) => (
           <li

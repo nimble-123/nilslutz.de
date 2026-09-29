@@ -146,22 +146,22 @@ export const bakeFrag = /* glsl */ `
   ${noise}
 
   float ripples(vec2 p) {
-    vec2 q = p + 0.12 * vec2(fbm(p * 1.7), fbm(p * 1.7 + 7.3));
-    float ph = q.y * 46.0 + q.x * 7.0 + fbm(p * 0.9) * 6.0;
-    float r = 1.0 - abs(sin(ph * 0.5));
-    r = r * r;
-    float amp = smoothstep(0.25, 0.75, fbm(p * 1.2 + 3.1));
-    return r * (0.35 + 0.65 * amp);
+    vec2 q = p + 0.1 * vec2(fbm(p * 1.3), fbm(p * 1.3 + 7.3));
+    float ph = q.y * 30.0 + q.x * 5.0 + fbm(p * 0.8) * 5.0;
+    // asymmetric ripple marks: gentle stoss side, steeper lee side
+    float r = 0.5 + 0.5 * sin(ph + 0.35 * sin(ph));
+    float amp = smoothstep(0.2, 0.8, fbm(p * 1.1 + 3.1));
+    return r * (0.25 + 0.75 * amp);
   }
 
   float heightAt(vec2 uv) {
     vec2 p = vec2(uv.x * uAspect, uv.y);
     float groove = texture2D(uWordSoft, uv).r;
     float h = 0.55;
-    h += ripples(p) * 0.26 * (1.0 - groove);
-    h += (fbm(p * 13.0) - 0.5) * 0.16;
-    h += (vnoise(p * 70.0) - 0.5) * 0.05;
-    h -= smoothstep(0.05, 0.95, groove) * 0.5;
+    h += ripples(p) * 0.3 * (1.0 - groove);
+    h += (fbm(p * 3.0) - 0.5) * 0.12;
+    h += (fbm(p * 11.0) - 0.5) * 0.018;
+    h -= smoothstep(0.03, 0.9, groove) * 0.55;
     return h;
   }
 
@@ -169,7 +169,7 @@ export const bakeFrag = /* glsl */ `
     float h = heightAt(vUv);
     float hx = heightAt(vUv + vec2(uTexel.x, 0.0));
     float hy = heightAt(vUv + vec2(0.0, uTexel.y));
-    vec2 slope = vec2(hx - h, hy - h) / uTexel.y * 0.0085;
+    vec2 slope = vec2(hx - h, hy - h) / uTexel.y * 0.1;
     vec3 n = normalize(vec3(-slope, 1.0));
     float sharp = texture2D(uWordSharp, vUv).r;
     gl_FragColor = vec4(clamp(h, 0.0, 1.0), n.xy * 0.5 + 0.5, sharp);
@@ -195,9 +195,14 @@ export const compositeFrag = /* glsl */ `
   vec3 pal(vec3 day, vec3 night) { return mix(day, night, uDark); }
 
   vec3 sky(vec3 r) {
-    vec3 zenith = pal(vec3(0.80, 0.83, 0.84), vec3(0.05, 0.07, 0.085));
-    vec3 horizon = pal(vec3(0.94, 0.945, 0.935), vec3(0.16, 0.19, 0.21));
-    vec3 c = mix(horizon, zenith, clamp(r.y * 1.4, 0.0, 1.0));
+    vec3 zenith = pal(vec3(0.66, 0.70, 0.72), vec3(0.05, 0.07, 0.085));
+    vec3 horizon = pal(vec3(0.95, 0.955, 0.945), vec3(0.17, 0.20, 0.22));
+    vec3 c = mix(horizon, zenith, clamp(r.y * 1.6 + 0.1, 0.0, 1.0));
+    // overcast: slow, soft cloud banks projected on a sky plane
+    vec2 cp = r.xy / max(r.z + 0.35, 0.2) * vec2(1.6, 3.2) + vec2(uTime * 0.012, 0.0);
+    float cl = fbm(cp) * 0.75 + fbm(cp * 3.1 + 4.0) * 0.25;
+    c = mix(c, pal(vec3(0.985, 0.985, 0.975), vec3(0.24, 0.28, 0.31)), smoothstep(0.42, 0.78, cl) * 0.7);
+    c *= mix(1.0, 0.86, smoothstep(0.55, 0.25, cl));
     vec3 sunDir = normalize(vec3(-0.35, 0.55, 0.76));
     float s = max(dot(r, sunDir), 0.0);
     vec3 glow = pal(vec3(1.0, 0.985, 0.95), vec3(0.78, 0.84, 0.9));
@@ -208,7 +213,7 @@ export const compositeFrag = /* glsl */ `
   vec3 shadeClay(vec2 uv, float wet, float dry) {
     vec4 c = texture2D(uClay, uv);
     float h = c.r;
-    vec3 n = normalize(vec3(c.gb * 2.0 - 1.0, 0.0));
+    vec3 n = vec3(c.gb * 2.0 - 1.0, 0.0);
     n.z = sqrt(max(1.0 - dot(n.xy, n.xy), 0.0));
     float letter = c.a;
 
@@ -220,11 +225,12 @@ export const compositeFrag = /* glsl */ `
     float w = clamp(max(wet, letter * 0.85 * (1.0 - dry * 0.55)), 0.0, 1.0);
     vec3 albedo = mix(dryCol, wetCol, w);
     albedo = mix(albedo, saltCol, dry * (1.0 - letter) * smoothstep(0.35, 0.8, h) * 0.55);
-    albedo *= 0.92 + 0.16 * fbm(uv * vec2(uAspect, 1.0) * 5.0);
+    vec2 ap = uv * vec2(uAspect, 1.0);
+    albedo *= 0.93 + 0.12 * fbm(ap * 5.0) + 0.05 * (hash21(floor(ap * 700.0)) - 0.5);
 
     vec3 L = normalize(vec3(-0.45, 0.62, 0.64));
-    float diff = 0.62 + 0.5 * dot(n, L);
-    float ao = mix(0.62, 1.0, smoothstep(0.0, 0.6, h));
+    float diff = 0.74 + 0.34 * dot(n, L);
+    float ao = mix(0.7, 1.0, smoothstep(0.0, 0.55, h));
     vec3 col = albedo * diff * ao;
 
     // wet sheen: sky reflected in the film of water left on the clay
@@ -248,8 +254,9 @@ export const compositeFrag = /* glsl */ `
     vec2 swell = vec2(
       cos(p.x * 5.1 + t * 0.9) * 0.6 + cos((p.x + p.y) * 9.3 - t * 1.3) * 0.4,
       sin(p.y * 6.3 - t * 0.7) * 0.6 + sin((p.x - p.y) * 7.7 + t * 1.1) * 0.4
-    ) * 0.035;
-    vec2 slope = sim.ba * 1.0 + swell;
+    ) * 0.03;
+    vec2 broad = (vec2(fbm(p * 2.2 + vec2(t * 0.05, t * 0.03)), fbm(p * 2.2 + vec2(5.2 - t * 0.04, 1.3))) - 0.5) * 0.09;
+    vec2 slope = sim.ba * 1.3 + swell + broad;
     vec3 N = normalize(vec3(-slope.x, -slope.y, 1.0));
 
     float edge = waterEdge(uv.x, uTide, t);
@@ -269,20 +276,19 @@ export const compositeFrag = /* glsl */ `
     float hD = texture2D(uSim, uv - vec2(0.0, uSimTexel.y)).r;
     float hU = texture2D(uSim, uv + vec2(0.0, uSimTexel.y)).r;
     float lap = hL + hR + hD + hU - 4.0 * sim.r;
-    float caust = clamp(-lap * 26.0, 0.0, 1.0) * water;
-    caust += (pow(vnoise(p * 22.0 + vec2(t * 0.4, -t * 0.3)), 6.0) * 0.5) * water * smoothstep(0.02, 0.2, d);
-    bed += caust * pal(vec3(0.16, 0.17, 0.165), vec3(0.06, 0.07, 0.08));
+    float caust = clamp(-lap * 30.0, 0.0, 1.0) * water;
+    bed += caust * pal(vec3(0.14, 0.15, 0.145), vec3(0.06, 0.07, 0.08));
 
     // ---- absorption: shallow tidal water, grey-green Atlantic
-    vec3 deep = pal(vec3(0.30, 0.37, 0.39), vec3(0.03, 0.05, 0.06));
-    float absorb = 0.16 + 0.5 * (1.0 - exp(-d * 3.2));
+    vec3 deep = pal(vec3(0.40, 0.46, 0.475), vec3(0.03, 0.05, 0.06));
+    float absorb = 0.24 + 0.36 * (1.0 - exp(-d * 2.6));
     vec3 under = mix(bed, deep, absorb);
 
     // ---- surface reflection: Fresnel over an overcast sky
     vec3 V = normalize(vec3(0.0, -0.45 + uv.y * 0.2, 1.0));
     vec3 R = reflect(-V, N);
     float fres = 0.02 + 0.98 * pow(1.0 - max(dot(N, V), 0.0), 5.0);
-    fres = clamp(fres + mix(0.05, 0.28, uv.y), 0.0, 1.0);
+    fres = clamp(fres * 1.6 + mix(0.1, 0.5, uv.y * uv.y), 0.0, 1.0);
     vec3 surf = mix(under, sky(R), fres);
 
     // ---- foam where the water meets the clay
