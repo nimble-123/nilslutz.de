@@ -418,12 +418,6 @@ pre {
   tab-size: 2;
 }
 
-@media (min-width: 1024px) {
-  .prose-line pre {
-    margin-right: -6rem;
-  }
-}
-
 pre code {
   display: grid;
   font-family: inherit;

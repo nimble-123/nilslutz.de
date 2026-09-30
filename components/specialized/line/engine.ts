@@ -355,7 +355,7 @@ export class LineEngine {
       vel[i] = active ? Math.abs(this.sim.velocityAt(u)) * dt : 0
     }
     this.baseCount = n
-    this.writeRibbon(this.main, n, shape.width, vel, 0.35)
+    this.writeRibbon(this.main, n, shape.width, vel, 0.12)
   }
 
   /**
@@ -382,7 +382,7 @@ export class LineEngine {
         att[v] = k
       }
     }
-    const blurAt = (i: number) => (motion ? Math.min(motion[i] * blurK, 3) : 0)
+    const blurAt = (i: number) => (motion ? Math.min(motion[i] * blurK, 1.25) : 0)
 
     for (let i = 0; i < n; i++) {
       const i0 = Math.max(0, i - 1)

@@ -168,7 +168,7 @@ export function LineStory({ marks, name, role }: Props) {
             { scaleY: 0, duration: 0.05, stagger: 0.012, ease: 'power2.out' },
             P.timeIn + 0.02
           )
-          .from(time.querySelectorAll('.time-fade'), { autoAlpha: 0, duration: 0.05, stagger: 0.01 }, P.timeIn + 0.05)
+          .from(time.querySelectorAll('.time-fade'), { autoAlpha: 0, duration: 0.035, stagger: 0.003 }, P.timeIn + 0.04)
           .to({}, { duration: 0.001 }, 1)
         storyTl = tl
 
@@ -304,6 +304,8 @@ export function LineStory({ marks, name, role }: Props) {
           pluckable = n >= 1
         }
       }
+      // straight hairlines sit exactly on a device-pixel row
+      if (shape.roll <= 0) shape.ay = snapY(shape.ay, dpr)
       return { shape, segments: segs, signal, pluckable }
     }
 
@@ -350,6 +352,7 @@ export function LineStory({ marks, name, role }: Props) {
 
   const scene = live ? 'absolute inset-0' : 'relative h-svh'
   const current = marks[active]
+  const lastYear = Math.max(...marks.map((m) => Number(m.period.match(/\d{4}/g)?.pop() ?? m.start)))
 
   return (
     <>
@@ -462,12 +465,12 @@ export function LineStory({ marks, name, role }: Props) {
 
         {/* ── Work: the circle unrolls into a time axis ───────────────────────── */}
         <div data-scene="time" className={cn(scene, 'min-h-[40rem]')}>
-          <div className="frame absolute inset-x-0 top-[18%] md:top-[20%]">
+          <div className="frame absolute inset-x-0 top-[calc(var(--yA)-18rem)] md:top-[calc(var(--yA)-15rem)]">
             <div className="grid-line gap-y-6">
               <div className="col-span-2 md:col-span-1">
                 <h2 className="label">
                   <span data-split className="block">
-                    Case studies, {marks[0]?.start}–{new Date().getFullYear()}
+                    Case studies, {marks[0]?.start}–{lastYear}
                   </span>
                 </h2>
               </div>
@@ -576,7 +579,7 @@ export function LineStory({ marks, name, role }: Props) {
               )
             })}
           </ol>
-          <div className="time-fade frame absolute inset-x-0 bottom-[10%] md:hidden">
+          <div className="time-fade frame absolute inset-x-0 top-[calc(var(--yA)+3.5rem)] md:hidden">
             <Link href="/work" className="ink-link label">
               All case studies
             </Link>

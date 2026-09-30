@@ -108,17 +108,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn(geist.variable, geistMono.variable)}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: lineBootScript }} />
         <StructuredData />
       </head>
       <body
-        className={cn(
-          geist.variable,
-          geistMono.variable,
-          'bg-background text-foreground min-h-screen font-sans text-[0.875rem] leading-[1.6] antialiased'
-        )}
+        className={cn('bg-background text-foreground min-h-screen font-sans text-[0.875rem] leading-[1.6] antialiased')}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SmoothScroll />
