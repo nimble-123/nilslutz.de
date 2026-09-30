@@ -60,11 +60,11 @@ export function Lighthouse() {
       onPointerLeave={() => setHover(false)}
       aria-pressed={isDark}
       aria-label={isDark ? 'Lighthouse: switch to day tide' : 'Lighthouse: switch to night tide'}
-      className="group shadow-lift relative block aspect-[6/5] w-full overflow-hidden rounded-[1.5rem] bg-[#2a2f33] transition-[scale] duration-150 ease-out active:scale-[0.96]"
+      className="group shadow-lift relative block aspect-square w-full max-w-[22rem] overflow-hidden rounded-[1.5rem] bg-[#c9cfd0] transition-[scale] duration-150 ease-out active:scale-[0.96] dark:bg-[#1c2327]"
     >
       <RiveComponent
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 size-full [filter:saturate(0.22)_contrast(1.05)_brightness(1.02)]"
+        className="pointer-events-none absolute inset-0 size-full [filter:grayscale(0.85)_sepia(0.12)_contrast(0.92)_brightness(1.04)] dark:[filter:grayscale(0.85)_contrast(0.95)_brightness(0.9)]"
       />
       <span className="eyebrow bg-background/85 text-foreground shadow-border absolute bottom-4 left-4 rounded-full px-3 py-1.5 backdrop-blur-sm">
         {isDark ? 'Night tide' : 'Day tide'} — tap the light

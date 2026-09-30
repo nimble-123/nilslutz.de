@@ -14,9 +14,7 @@ export function Footer() {
     <footer className="border-border text-foreground mt-24 border-t">
       <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-4 py-12 md:grid-cols-12 md:px-8 md:py-16">
         <div className="md:col-span-5">
-          <p className="opsz-display text-4xl leading-none font-light tracking-[-0.03em] md:text-5xl">
-            {profile.name}
-          </p>
+          <p className="opsz-display text-4xl leading-none font-light tracking-[-0.03em] md:text-5xl">{profile.name}</p>
           <p className="text-muted-foreground mt-4 max-w-sm text-base">
             {profile.role}. Building clean, maintainable, and robust enterprise solutions.
           </p>

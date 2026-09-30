@@ -1,17 +1,25 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypePrettyCode from 'rehype-pretty-code'
 import remarkGfm from 'remark-gfm'
 import { createHighlighter } from 'shiki'
 import { customLanguages } from '@/lib/shiki-config'
+import { stripLeadingTitle } from '@/lib/utils'
 
 interface MDXContentProps {
   source: string
 }
 
+// The page owns the only <h1>; any remaining `#` heading in content becomes an <h2>.
+const components = {
+  h1: (props: ComponentPropsWithoutRef<'h2'>) => <h2 {...props} />,
+}
+
 export async function MDXContent({ source }: MDXContentProps) {
   return (
     <MDXRemote
-      source={source}
+      source={stripLeadingTitle(source)}
+      components={components}
       options={{
         mdxOptions: {
           remarkPlugins: [remarkGfm],

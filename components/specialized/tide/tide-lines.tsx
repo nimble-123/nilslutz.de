@@ -23,6 +23,7 @@ export type TideLineItem = {
 export function TideLines({ items }: { items: TideLineItem[] }) {
   const sectionRef = useRef<HTMLElement>(null)
   const counterRef = useRef<HTMLSpanElement>(null)
+  const periodRef = useRef<HTMLSpanElement>(null)
   const total = items.length
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export function TideLines({ items }: { items: TideLineItem[] }) {
           onUpdate: (self) => {
             const n = Math.min(total, Math.max(1, Math.ceil(self.progress * total)))
             if (counterRef.current) counterRef.current.textContent = String(n).padStart(2, '0')
+            if (periodRef.current && items[n - 1]) periodRef.current.textContent = items[n - 1].period
           },
         },
       })
@@ -72,10 +74,15 @@ export function TideLines({ items }: { items: TideLineItem[] }) {
       tl.to({}, { duration: 0.4 })
     })
     return () => mm.revert()
-  }, [total])
+  }, [total, items])
 
   return (
-    <section ref={sectionRef} aria-labelledby="tide-lines-title" className="bg-background relative w-full">
+    <section
+      ref={sectionRef}
+      data-after-hero
+      aria-labelledby="tide-lines-title"
+      className="bg-background relative w-full"
+    >
       <div className="mx-auto grid min-h-[100svh] max-w-[1440px] grid-cols-12 content-center gap-x-6 gap-y-6 px-4 py-20 md:px-8 md:py-16">
         <div data-lines-intro className="col-span-12 lg:col-span-4">
           <p className="eyebrow text-muted-foreground">
@@ -98,6 +105,16 @@ export function TideLines({ items }: { items: TideLineItem[] }) {
             All case studies
             <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
           </Link>
+          {/* High-water mark: the period of the line currently being laid down */}
+          <p aria-hidden="true" className="mt-16 hidden lg:block">
+            <span className="eyebrow text-muted-foreground block">High water</span>
+            <span
+              ref={periodRef}
+              className="opsz-display text-clay mt-1 block text-[5.5rem] leading-[0.9] font-light tracking-[-0.04em] whitespace-nowrap italic tabular-nums"
+            >
+              {items[0]?.period}
+            </span>
+          </p>
         </div>
 
         <ol className="col-span-12 lg:col-span-8">

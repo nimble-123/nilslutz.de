@@ -130,7 +130,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 <ul className="mt-4 space-y-3">
                   {study.metrics.map((metric, idx) => (
                     <li key={idx} className="border-border flex items-baseline gap-3 border-t pt-3">
-                      <span className="text-oxide font-mono text-xs tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                      <span className="text-oxide font-mono text-xs tabular-nums">
+                        {String(idx + 1).padStart(2, '0')}
+                      </span>
                       <span className="opsz-headline text-lg leading-tight">{metric.replace(/&lt;/g, '<')}</span>
                     </li>
                   ))}

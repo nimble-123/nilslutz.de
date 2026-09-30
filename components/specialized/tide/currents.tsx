@@ -127,7 +127,7 @@ export function Currents() {
               className="bg-border absolute inset-x-0 top-0 h-px origin-left"
             />
             <span className="eyebrow text-muted-foreground col-span-12 md:col-span-1">Stack</span>
-            <p className="col-span-12 font-mono text-[0.8125rem] leading-7 md:col-span-11">
+            <p className="col-span-12 flex flex-wrap font-mono text-[0.8125rem] leading-7 md:col-span-11">
               {stack.map((s, i) => (
                 <span key={s}>
                   {s}

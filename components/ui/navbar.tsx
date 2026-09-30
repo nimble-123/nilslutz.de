@@ -26,12 +26,33 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
     setIsOpen(false)
   }, [pathname])
 
+  // Overlay header (home): transparent over the water, solid once the next scene reaches it.
+  const [solid, setSolid] = React.useState(!overlay)
+  React.useEffect(() => {
+    if (!overlay) return
+    const update = () => {
+      const next = document.querySelector('[data-after-hero]')
+      setSolid(next ? next.getBoundingClientRect().top <= 64 : window.scrollY > 64)
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [overlay])
+
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <header
       data-site-header
-      className={cn('top-0 z-50 w-full', overlay ? 'fixed' : 'bg-background/80 sticky backdrop-blur-md')}
+      className={cn(
+        'top-0 z-50 w-full transition-[background-color,backdrop-filter] duration-200 ease-out',
+        overlay ? 'fixed' : 'sticky',
+        solid ? 'bg-background/80 backdrop-blur-md' : 'bg-transparent backdrop-blur-none'
+      )}
     >
       <nav className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 md:px-8">
         <Link

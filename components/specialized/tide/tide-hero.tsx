@@ -331,7 +331,7 @@ export function TideHero() {
             data-hero-chunk
             className="col-span-12 flex items-end justify-between gap-6 md:col-span-5 md:flex-col md:items-end lg:col-span-6"
           >
-            <p className="eyebrow text-muted-foreground md:text-right">
+            <p className="eyebrow text-muted-foreground shrink-0 whitespace-nowrap tabular-nums md:text-right">
               Ebb <span ref={gaugeRef}>00</span>%
             </p>
             <p data-hero-hint className="eyebrow text-foreground/70 md:text-right">
@@ -343,7 +343,7 @@ export function TideHero() {
 
       <div
         data-hero-after
-        className="pointer-events-none invisible absolute inset-x-0 bottom-10 mx-auto max-w-[1440px] px-4 opacity-0 md:bottom-14 md:px-8"
+        className="pointer-events-none invisible absolute inset-x-0 bottom-20 mx-auto max-w-[1440px] px-4 opacity-0 md:bottom-14 md:px-8"
       >
         <p className="eyebrow text-muted-foreground">Low water</p>
         <p className="opsz-headline text-foreground mt-2 max-w-xl text-[1.6rem] leading-[1.15] md:text-[2.25rem]">

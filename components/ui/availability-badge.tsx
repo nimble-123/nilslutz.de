@@ -8,7 +8,10 @@ export function AvailabilityBadge({ className }: { className?: string }) {
         className
       )}
     >
-      <span className="size-2 rounded-full bg-[#5f8a74] shadow-[0_0_0_3px_color-mix(in_oklch,#5f8a74_22%,transparent)]" aria-hidden="true" />
+      <span
+        className="size-2 rounded-full bg-[#5f8a74] shadow-[0_0_0_3px_color-mix(in_oklch,#5f8a74_22%,transparent)]"
+        aria-hidden="true"
+      />
       Open for Inhouse &amp; Consulting (BTP / Architecture)
     </p>
   )

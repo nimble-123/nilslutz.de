@@ -195,13 +195,13 @@ export const compositeFrag = /* glsl */ `
   vec3 pal(vec3 day, vec3 night) { return mix(day, night, uDark); }
 
   vec3 sky(vec3 r) {
-    vec3 zenith = pal(vec3(0.66, 0.70, 0.72), vec3(0.05, 0.07, 0.085));
-    vec3 horizon = pal(vec3(0.95, 0.955, 0.945), vec3(0.17, 0.20, 0.22));
+    vec3 zenith = pal(vec3(0.66, 0.70, 0.72), vec3(0.09, 0.115, 0.13));
+    vec3 horizon = pal(vec3(0.95, 0.955, 0.945), vec3(0.27, 0.31, 0.33));
     vec3 c = mix(horizon, zenith, clamp(r.y * 1.6 + 0.1, 0.0, 1.0));
     // overcast: slow, soft cloud banks projected on a sky plane
     vec2 cp = r.xy / max(r.z + 0.35, 0.2) * vec2(1.6, 3.2) + vec2(uTime * 0.012, 0.0);
     float cl = fbm(cp) * 0.75 + fbm(cp * 3.1 + 4.0) * 0.25;
-    c = mix(c, pal(vec3(0.985, 0.985, 0.975), vec3(0.24, 0.28, 0.31)), smoothstep(0.42, 0.78, cl) * 0.7);
+    c = mix(c, pal(vec3(0.985, 0.985, 0.975), vec3(0.32, 0.36, 0.39)), smoothstep(0.42, 0.78, cl) * 0.7);
     c *= mix(1.0, 0.86, smoothstep(0.55, 0.25, cl));
     vec3 sunDir = normalize(vec3(-0.35, 0.55, 0.76));
     float s = max(dot(r, sunDir), 0.0);
@@ -219,7 +219,7 @@ export const compositeFrag = /* glsl */ `
 
     vec3 dryCol = pal(vec3(0.745, 0.705, 0.655), vec3(0.29, 0.265, 0.24));
     vec3 saltCol = pal(vec3(0.86, 0.85, 0.825), vec3(0.34, 0.33, 0.315));
-    vec3 wetCol = pal(vec3(0.43, 0.385, 0.335), vec3(0.14, 0.125, 0.115));
+    vec3 wetCol = pal(vec3(0.43, 0.385, 0.335), vec3(0.17, 0.155, 0.14));
 
     // letters are carved: they stay wetter and darker
     float w = clamp(max(wet, letter * 0.85 * (1.0 - dry * 0.55)), 0.0, 1.0);
@@ -280,7 +280,7 @@ export const compositeFrag = /* glsl */ `
     bed += caust * pal(vec3(0.14, 0.15, 0.145), vec3(0.06, 0.07, 0.08));
 
     // ---- absorption: shallow tidal water, grey-green Atlantic
-    vec3 deep = pal(vec3(0.40, 0.46, 0.475), vec3(0.03, 0.05, 0.06));
+    vec3 deep = pal(vec3(0.40, 0.46, 0.475), vec3(0.075, 0.10, 0.115));
     float absorb = 0.24 + 0.36 * (1.0 - exp(-d * 2.6));
     vec3 under = mix(bed, deep, absorb);
 
