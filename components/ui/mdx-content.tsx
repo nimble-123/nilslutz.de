@@ -12,6 +12,8 @@ export async function MDXContent({ source }: MDXContentProps) {
   return (
     <MDXRemote
       source={source}
+      // the page title is the only h1; an h1 inside the MDX body becomes a section heading
+      components={{ h1: (props) => <h2 {...props} /> }}
       options={{
         mdxOptions: {
           remarkPlugins: [remarkGfm],

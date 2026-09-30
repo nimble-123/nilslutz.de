@@ -28,7 +28,9 @@ export function Navbar() {
       raf = 0
       if (!isHome) return setSolid(window.scrollY > 8)
       const story = document.getElementById('monolith')
-      setSolid(story ? story.getBoundingClientRect().bottom < 72 : window.scrollY > 8)
+      // the pinned story is a full-bleed room; with reduced motion it is a normal flowing section
+      const flowing = !story || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      setSolid(flowing ? window.scrollY > 8 : story.getBoundingClientRect().bottom < 72)
     }
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(check)
