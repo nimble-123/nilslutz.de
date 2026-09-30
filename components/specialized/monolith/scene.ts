@@ -347,7 +347,7 @@ export function createMonolithScene(canvas: HTMLCanvasElement, opts: MonolithOpt
     lookTarget.set(0, 1.25, 0)
 
     const into = smooth(0.08, 0.24, p)
-    dist = base - into * (portrait ? 0.0 : 0.35)
+    dist = base - into * (portrait ? -1.1 : 0.35)
     camY += into * 0.18
     // orbit across the exhibits
     const orbit = smooth(0.2, 0.8, p)
