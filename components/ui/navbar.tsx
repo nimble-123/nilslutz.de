@@ -3,100 +3,103 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
 import { ModeToggle } from '@/components/ui/theme-toggle'
+import { profile } from '@/content/profile'
+import { navItems } from '@/components/ui/nav-items'
 import { cn } from '@/lib/utils'
 
-const navItems = [
-  { name: 'About', href: '/about' },
-  { name: 'Case Studies', href: '/work' },
-  { name: 'Notes', href: '/notes' },
-  { name: 'Tools', href: '/tools' },
-  { name: 'Contact', href: '/contact' },
-]
-
-export function Navbar() {
+/**
+ * A single row of small type. On the home page it is part of the one orchestrated
+ * entrance (`intro`), everywhere else it is simply there.
+ */
+export function Navbar({ intro = false }: { intro?: boolean }) {
   const [isOpen, setIsOpen] = React.useState(false)
   const pathname = usePathname()
 
-  // Close mobile menu on route change
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOpen(false)
   }, [pathname])
 
+  React.useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setIsOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen])
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
   return (
-    <nav className="glass sticky top-0 z-50 w-full">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/" className="text-xl font-bold tracking-tight transition-opacity hover:opacity-80">
-          Nils Lutz
+    <header className={cn('absolute inset-x-0 top-0 z-40', intro && 'intro-item')} data-intro="nav">
+      <div className="frame flex h-16 items-center justify-between">
+        <Link href="/" className="relative -mx-2 px-2 py-3 text-[0.8125rem] font-medium tracking-[-0.005em]">
+          {profile.name}
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-6 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive(item.href) ? 'page' : undefined}
               className={cn(
-                'hover:text-primary text-sm font-medium transition-colors',
-                pathname === item.href ? 'text-primary' : 'text-muted-foreground'
+                'ink-link text-[0.8125rem] transition-colors duration-150 ease-out',
+                isActive(item.href) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               {item.name}
             </Link>
           ))}
-          <div className="border-border ml-2 border-l pl-4">
-            <ModeToggle />
-          </div>
-        </div>
+          <ModeToggle className="-mr-3" />
+        </nav>
 
-        {/* Mobile Menu Button */}
-        <div className="flex items-center gap-4 md:hidden">
+        <div className="flex items-center md:hidden">
           <ModeToggle />
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-foreground hover:bg-accent focus:ring-primary inline-flex items-center justify-center rounded-md p-2 focus:ring-2 focus:outline-none focus:ring-inset"
+            type="button"
+            onClick={() => setIsOpen((v) => !v)}
+            className="-mr-2 inline-flex h-11 min-w-11 items-center justify-end px-2 text-[0.8125rem] transition-transform duration-150 ease-out active:scale-[0.96]"
             aria-expanded={isOpen}
+            aria-controls="mobile-menu"
           >
-            <span className="sr-only">Open main menu</span>
-            {isOpen ? (
-              <X className="block h-6 w-6" aria-hidden="true" />
-            ) : (
-              <Menu className="block h-6 w-6" aria-hidden="true" />
-            )}
+            {isOpen ? 'Close' : 'Menu'}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-background border-b md:hidden"
+          <motion.nav
+            id="mobile-menu"
+            aria-label="Mobile"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4, transition: { duration: 0.15, ease: 'easeOut' } }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-background fixed inset-x-0 top-16 bottom-0 md:hidden"
           >
-            <div className="space-y-1 px-4 pt-2 pb-3">
+            <ul className="frame">
               {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'hover:bg-accent block rounded-md px-3 py-2 text-base font-medium transition-colors',
-                    pathname === item.href ? 'text-primary bg-accent/50' : 'text-foreground'
-                  )}
-                >
-                  {item.name}
-                </Link>
+                <li key={item.href} className="border-border border-b first:border-t">
+                  <Link
+                    href={item.href}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                    className={cn(
+                      'flex h-14 items-center justify-between text-base',
+                      isActive(item.href) ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {item.name}
+                    {isActive(item.href) && <span className="bg-foreground h-px w-4" aria-hidden="true" />}
+                  </Link>
+                </li>
               ))}
-            </div>
-          </motion.div>
+            </ul>
+          </motion.nav>
         )}
       </AnimatePresence>
-    </nav>
+    </header>
   )
 }

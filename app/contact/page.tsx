@@ -2,8 +2,8 @@ import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { AvailabilityBadge } from '@/components/ui/availability-badge'
 import { profile } from '@/content/profile'
-import { Mail, Linkedin, Github } from 'lucide-react'
 import { Metadata } from 'next'
+import { PageHeader, pageMain } from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -16,55 +16,50 @@ export const metadata: Metadata = {
   },
 }
 
+const channels = [
+  { k: 'Email', v: profile.socials.email, href: `mailto:${profile.socials.email}`, note: 'Send me a message' },
+  { k: 'LinkedIn', v: 'in/nlsltz', href: profile.socials.linkedin, note: 'Connect professionally', external: true },
+  { k: 'GitHub', v: 'nimble-123', href: profile.socials.github, note: 'Check my code', external: true },
+  {
+    k: 'SAP Community',
+    v: 'Profile',
+    href: profile.socials.community,
+    note: 'Community contributions',
+    external: true,
+  },
+]
+
 export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-2xl space-y-12 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Get in Touch</h1>
-          <p className="text-muted-foreground text-xl">
-            Interested in robust SAP BTP architectures or Clean Core strategies?
-          </p>
+      <main className={pageMain}>
+        <PageHeader
+          label="Contact"
+          title="Get in Touch"
+          intro="Interested in robust SAP BTP architectures or Clean Core strategies?"
+        >
+          <AvailabilityBadge className="mt-8" />
+        </PageHeader>
 
-          <div className="glass-card rounded-xl p-8 text-center">
-            <h2 className="mb-4 text-lg font-semibold">Current Availability</h2>
-            <AvailabilityBadge />
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <a
-              href={`mailto:${profile.socials.email}`}
-              className="glass-card group flex flex-col items-center rounded-xl p-6 transition-transform hover:scale-[1.02]"
-            >
-              <Mail className="text-primary mb-4 h-8 w-8 transition-transform group-hover:scale-110" />
-              <span className="font-semibold">Email</span>
-              <span className="text-muted-foreground text-sm">Send me a message</span>
-            </a>
-
-            <a
-              href={profile.socials.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-card group flex flex-col items-center rounded-xl p-6 transition-transform hover:scale-[1.02]"
-            >
-              <Linkedin className="mb-4 h-8 w-8 text-[#0077b5] transition-transform group-hover:scale-110" />
-              <span className="font-semibold">LinkedIn</span>
-              <span className="text-muted-foreground text-sm">Connect professionally</span>
-            </a>
-
-            <a
-              href={profile.socials.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-card group flex flex-col items-center rounded-xl p-6 transition-transform hover:scale-[1.02]"
-            >
-              <Github className="text-foreground mb-4 h-8 w-8 transition-transform group-hover:scale-110" />
-              <span className="font-semibold">GitHub</span>
-              <span className="text-muted-foreground text-sm">Check my code</span>
-            </a>
-          </div>
-        </div>
+        <ul className="border-foreground border-t">
+          {channels.map((c) => (
+            <li key={c.k} className="border-border border-b">
+              <a
+                href={c.href}
+                {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className="grid-line group items-baseline gap-y-1 py-5 md:py-6"
+              >
+                <span className="label col-span-2 md:col-span-1">{c.k}</span>
+                <span className="col-span-2 text-[1.125rem] tracking-[-0.015em] md:text-[1.375rem]">
+                  <span className="ink-link">{c.v}</span>
+                  {c.external && <span className="text-muted-foreground"> ↗</span>}
+                </span>
+                <span className="text-muted-foreground hidden text-right md:block">{c.note}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </main>
       <Footer />
     </>

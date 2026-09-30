@@ -99,3 +99,25 @@ export async function getNoteBySlug(slug: string): Promise<Note | null> {
   const all = await getNotes()
   return all.find((p) => p.slug === slug) || null
 }
+
+const words = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+
+/**
+ * Many MDX bodies open with their own `# Title`. The page already renders the frontmatter title
+ * as the article's h1, so a leading heading that repeats it (most of its words) is dropped.
+ * Section-style openers such as "# Problem" are kept.
+ */
+export function withoutDuplicateTitle(content: string, title: string): string {
+  const match = content.match(/^\s*#\s+(.+)\n/)
+  if (!match) return content
+  const heading = words(match[1])
+  const t = new Set(words(title))
+  if (heading.length === 0) return content
+  const shared = heading.filter((w) => t.has(w)).length
+  return shared / heading.length >= 0.6 ? content.slice(match[0].length) : content
+}

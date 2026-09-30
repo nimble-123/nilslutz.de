@@ -2,8 +2,8 @@ import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { getNotes } from '@/lib/content'
 import Link from 'next/link'
-import { format } from 'date-fns'
 import { Metadata } from 'next'
+import { PageHeader, pageMain } from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
   title: 'Writing',
@@ -22,37 +22,30 @@ export default async function NotesPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-3xl space-y-12">
-          <div className="space-y-4 border-b pb-8">
-            <h1 className="text-4xl font-bold tracking-tight">Writing</h1>
-            <p className="text-muted-foreground text-xl">
-              Pattern libraries, architectural thoughts, and pragmatic guides.
-            </p>
-          </div>
-          <div className="space-y-10">
-            {notes.map((note) => (
-              <article key={note.slug} className="group glass-card relative space-y-3 rounded-xl p-8">
-                <p className="text-muted-foreground font-mono text-sm">{format(new Date(note.date), 'MMMM d, yyyy')}</p>
-                <h2 className="group-hover:text-primary text-2xl font-bold tracking-tight transition-colors">
-                  <Link href={`/notes/${note.slug}`}>
-                    <span className="absolute inset-0" />
-                    {note.title}
-                  </Link>
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">{note.summary}</p>
-                <div className="flex gap-2">
-                  {note.tags &&
-                    note.tags.map((tag) => (
-                      <span key={tag} className="text-primary bg-primary/10 rounded px-2 py-0.5 text-xs font-medium">
-                        {tag}
-                      </span>
-                    ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
+      <main className={pageMain}>
+        <PageHeader
+          label="Notes"
+          title="Writing"
+          intro="Pattern libraries, architectural thoughts, and pragmatic guides."
+        />
+        <ul className="border-foreground border-t">
+          {notes.map((note) => (
+            <li key={note.slug} className="border-border border-b">
+              <Link href={`/notes/${note.slug}`} className="grid-line group gap-y-2 py-5 md:py-6">
+                <time dateTime={note.date} className="label col-span-2 pt-0.5 tabular-nums md:col-span-1">
+                  {note.date}
+                </time>
+                <span className="col-span-2">
+                  <span className="block text-[0.9375rem] leading-snug tracking-[-0.005em]">
+                    <span className="ink-link">{note.title}</span>
+                  </span>
+                  <span className="text-muted-foreground mt-1.5 line-clamp-2 block max-w-[36rem]">{note.summary}</span>
+                </span>
+                <span className="label hidden pt-0.5 text-right md:block">{note.tags?.slice(0, 3).join(' · ')}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </main>
       <Footer />
     </>

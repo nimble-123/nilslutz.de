@@ -3,6 +3,7 @@ import { Footer } from '@/components/ui/footer'
 import { getCaseStudies } from '@/lib/content'
 import { CaseStudyList } from '@/components/specialized/case-study-list'
 import { Metadata } from 'next'
+import { PageHeader, pageMain } from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
   title: 'Case Studies',
@@ -22,18 +23,22 @@ export default async function WorkPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="mx-auto max-w-4xl space-y-12">
-          <div className="space-y-4 text-center">
-            <h1 className="text-4xl font-bold tracking-tight">Case Studies</h1>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
-              Selected projects demonstrating Clean Core architecture, SAP BTP extensions, and enterprise integration
-              patterns.
-            </p>
-          </div>
-
-          <CaseStudyList items={caseStudies} />
-        </div>
+      <main className={pageMain}>
+        <PageHeader
+          label="Work"
+          title="Case Studies"
+          intro="Selected projects demonstrating Clean Core architecture, SAP BTP extensions, and enterprise integration patterns."
+        />
+        <CaseStudyList
+          items={caseStudies.map(({ slug, title, summary, tags, period, role }) => ({
+            slug,
+            title,
+            summary,
+            tags,
+            period,
+            role,
+          }))}
+        />
       </main>
       <Footer />
     </>

@@ -2,81 +2,70 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
 import { CaseStudy } from '@/lib/content'
 import { cn } from '@/lib/utils'
 
 const filters = ['All', 'Architecture', 'CAP', 'RAP', 'Fiori', 'Integration', 'Tooling']
 
-export function CaseStudyList({ items }: { items: CaseStudy[] }) {
-  const [filter, setFilter] = useState('All')
+type Item = Pick<CaseStudy, 'slug' | 'title' | 'summary' | 'tags' | 'period' | 'role'>
 
-  const filteredItems = items.filter((item) => {
-    if (filter === 'All') return true
-    return item.tags.includes(filter)
-  })
+export function CaseStudyList({ items }: { items: Item[] }) {
+  const [filter, setFilter] = useState('All')
+  const count = (f: string) => (f === 'All' ? items.length : items.filter((i) => i.tags.includes(f)).length)
+  const filteredItems = items.filter((item) => filter === 'All' || item.tags.includes(filter))
 
   return (
-    <div className="space-y-12">
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap justify-center gap-2">
-        {filters.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'rounded-full px-4 py-2 text-sm font-medium transition-all',
-              filter === f
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            )}
-          >
-            {f}
-          </button>
-        ))}
+    <div>
+      <div role="group" aria-label="Filter by topic" className="-mx-2 flex flex-wrap gap-x-1 pb-4">
+        {filters.map((f) => {
+          const n = count(f)
+          const on = filter === f
+          return (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              aria-pressed={on}
+              disabled={n === 0}
+              className={cn(
+                'inline-flex h-10 items-baseline gap-1 px-2 pt-2.5 text-[0.8125rem] transition-[color,scale] duration-150 ease-out active:scale-[0.96] disabled:opacity-40',
+                on ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span className="ink-link">{f}</span>
+              <sup className="font-mono text-[0.625rem] tabular-nums">{n}</sup>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Grid */}
-      <motion.div layout className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <AnimatePresence mode="popLayout">
+      <ul className="border-foreground border-t">
+        <AnimatePresence mode="popLayout" initial={false}>
           {filteredItems.map((study) => (
-            <motion.div
+            <motion.li
               key={study.slug}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className="glass-card group relative flex flex-col justify-between rounded-xl p-6"
+              layout="position"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+              transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+              className="border-border border-b"
             >
-              <div className="mb-4 space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {study.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="focus:ring-ring bg-secondary text-secondary-foreground inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <h3 className="group-hover:text-primary text-2xl font-bold tracking-tight transition-colors">
-                  <Link href={`/work/${study.slug}`}>
-                    <span className="absolute inset-0" />
-                    {study.title}
-                  </Link>
-                </h3>
-                <p className="text-muted-foreground line-clamp-3">{study.summary}</p>
-              </div>
-
-              <div className="text-muted-foreground mt-auto flex items-center justify-between border-t pt-4 text-sm">
-                <span>{study.role}</span>
-                <span>{study.period}</span>
-              </div>
-            </motion.div>
+              <Link href={`/work/${study.slug}`} className="grid-line group gap-y-2 py-5 md:py-6">
+                <span className="label col-span-2 pt-0.5 tabular-nums md:col-span-1">{study.period}</span>
+                <span className="col-span-2">
+                  <span className="block text-[0.9375rem] leading-snug tracking-[-0.005em]">
+                    <span className="ink-link">{study.title}</span>
+                  </span>
+                  <span className="text-muted-foreground mt-1.5 line-clamp-2 block max-w-[36rem]">{study.summary}</span>
+                </span>
+                <span className="label hidden pt-0.5 text-right md:block">{study.tags.slice(0, 3).join(' · ')}</span>
+              </Link>
+            </motion.li>
           ))}
         </AnimatePresence>
-      </motion.div>
+      </ul>
     </div>
   )
 }

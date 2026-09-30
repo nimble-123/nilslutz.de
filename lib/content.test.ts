@@ -71,3 +71,17 @@ describe('getNoteBySlug', () => {
     expect(await getNoteBySlug('does-not-exist-xyz')).toBeNull()
   })
 })
+
+describe('withoutDuplicateTitle', () => {
+  it('drops a leading heading that repeats the title', async () => {
+    const { withoutDuplicateTitle } = await import('@/lib/content')
+    const body = '# Repository Pattern in SAP CAP\n\nText'
+    expect(withoutDuplicateTitle(body, 'Repository Pattern in SAP CAP').trim()).toBe('Text')
+  })
+
+  it('keeps section-style openers', async () => {
+    const { withoutDuplicateTitle } = await import('@/lib/content')
+    const body = '# Problem\n\nText'
+    expect(withoutDuplicateTitle(body, 'Event-Driven Architecture with Event Mesh')).toBe(body)
+  })
+})

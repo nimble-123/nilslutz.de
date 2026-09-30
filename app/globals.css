@@ -1,209 +1,441 @@
 @import 'tailwindcss';
-@plugin '@tailwindcss/typography';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * "Line" — paper and ink. No accent colour; one signal dot, used once per page.
+ * Dark mode is the exact inversion of every token.
+ */
 @theme {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-
-  --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-
+  --color-faint: var(--faint);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-signal: var(--signal);
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 }
 
 :root {
-  /* Light Theme - Modern Blue/Indigo */
-  --background: #f7f8fa;
-  --foreground: #0b1220;
+  --background: #f7f7f5;
+  --foreground: #111111;
+  --muted-foreground: #6e6e6b;
+  --faint: #a3a3a0;
+  --border: #dcdcd8;
+  --signal: #ff3b00;
 
-  --card: #ffffff;
-  --card-foreground: #0b1220;
+  /* Monochrome shiki palette (css-variables theme) */
+  --shiki-foreground: #111111;
+  --shiki-background: transparent;
+  --shiki-token-keyword: #111111;
+  --shiki-token-constant: #3d3d3b;
+  --shiki-token-string: #5e5e5b;
+  --shiki-token-string-expression: #5e5e5b;
+  --shiki-token-comment: #a3a3a0;
+  --shiki-token-function: #111111;
+  --shiki-token-parameter: #3d3d3b;
+  --shiki-token-punctuation: #8a8a87;
+  --shiki-token-link: #111111;
 
-  --popover: #ffffff;
-  --popover-foreground: #0b1220;
-
-  --primary: #1e63ff;
-  /* Blue Accent */
-  --primary-foreground: #ffffff;
-
-  --secondary: #e6e8ee;
-  /* Cool Gray Border */
-  --secondary-foreground: #0b1220;
-
-  --muted: #f7f8fa;
-  --muted-foreground: #5b6474;
-
-  --accent: #e1e6f0;
-  /* Light Blue Tint for hover */
-  --accent-foreground: #1e63ff;
-
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-
-  --border: #e6e8ee;
-  --input: #e6e8ee;
-  --ring: #1e63ff;
-
-  --radius: 0.75rem;
-
-  /* Gradient Backgrounds */
-  --gradient-start: #e6e8ee;
-  --gradient-end: #d1d5db;
+  --gutter: 1rem;
 }
 
 .dark {
-  /* Dark Theme - Deep & Indigo */
-  --background: #0b1020;
-  --foreground: #eaf0ff;
+  --background: #08080a;
+  --foreground: #eeeeee;
+  --muted-foreground: #919194;
+  --faint: #5c5c5f;
+  --border: #232327;
 
-  --card: #0f1730;
-  --card-foreground: #eaf0ff;
-
-  --popover: #0f1730;
-  --popover-foreground: #eaf0ff;
-
-  --primary: #4c7dff;
-  /* Bright Indigo Accent */
-  --primary-foreground: #ffffff;
-
-  --secondary: #22304e;
-  --secondary-foreground: #eaf0ff;
-
-  --muted: #0b1020;
-  --muted-foreground: #a7b0c2;
-
-  --accent: #22304e;
-  --accent-foreground: #4c7dff;
-
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
-
-  --border: #22304e;
-  --input: #22304e;
-  --ring: #4c7dff;
-
-  --gradient-start: #1a2340;
-  --gradient-end: #0f1730;
+  --shiki-foreground: #eeeeee;
+  --shiki-token-keyword: #eeeeee;
+  --shiki-token-constant: #c2c2c4;
+  --shiki-token-string: #a1a1a4;
+  --shiki-token-string-expression: #a1a1a4;
+  --shiki-token-comment: #5c5c5f;
+  --shiki-token-function: #eeeeee;
+  --shiki-token-parameter: #c2c2c4;
+  --shiki-token-punctuation: #757578;
+  --shiki-token-link: #eeeeee;
 }
 
-@layer utilities {
-  .glass {
-    @apply border border-white/20 shadow-xl backdrop-blur-xl dark:border-white/5;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
+@media (min-width: 768px) {
+  :root {
+    --gutter: 2rem;
   }
+}
 
-  .dark .glass {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.2) 100%);
+@media (min-width: 1280px) {
+  :root {
+    --gutter: 3rem;
   }
+}
 
-  .glass-card {
-    @apply border border-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl dark:border-white/10;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
-  }
-
-  .dark .glass-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(30, 41, 59, 0.1) 100%);
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background-attachment: fixed;
-  background-image:
-    radial-gradient(circle at 15% 50%, var(--gradient-start), transparent 25%),
-    radial-gradient(circle at 85% 30%, var(--gradient-end), transparent 25%);
   background-color: var(--background);
-  min-height: 100vh;
+  color: var(--foreground);
   font-feature-settings:
     'rlig' 1,
-    'calt' 1;
+    'calt' 1,
+    'ss01' 1;
 }
 
-/* Custom Scrollbar for "Nordic clean" feel */
-::-webkit-scrollbar {
-  width: 8px;
+::selection {
+  background: var(--foreground);
+  color: var(--background);
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+:focus-visible {
+  outline: 1px solid var(--foreground);
+  outline-offset: 3px;
 }
 
-::-webkit-scrollbar-thumb {
-  background-color: var(--border);
-  border-radius: 9999px;
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--muted-foreground);
+p,
+li,
+dd,
+figcaption,
+blockquote {
+  text-wrap: pretty;
 }
 
-/* Syntax Highlighting - Multiple Themes Support */
-code[data-theme*=' '],
-code[data-theme*=' '] span {
-  color: var(--shiki-light);
-  background-color: var(--shiki-light-bg);
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
-@media (prefers-color-scheme: dark) {
-  code[data-theme*=' '],
-  code[data-theme*=' '] span {
-    color: var(--shiki-dark);
-    background-color: var(--shiki-dark-bg);
+@layer components {
+  /* Page frame: a strict 4-column grid (2 on phones) */
+  .frame {
+    padding-inline: var(--gutter);
+    margin-inline: auto;
+    width: 100%;
+    max-width: 90rem;
+  }
+
+  .grid-line {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .grid-line {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 2rem;
+    }
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    line-height: 1rem;
+    letter-spacing: 0.01em;
+    color: var(--muted-foreground);
+  }
+
+  /* Link with a hairline that draws on hover (transform only, interruptible) */
+  .ink-link {
+    position: relative;
+    text-decoration: none;
+  }
+  .ink-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 240ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  @media (hover: hover) {
+    .ink-link:hover::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+  }
+  .ink-link[aria-current='page']::after,
+  [aria-pressed='true'] > .ink-link::after {
+    transform: scaleX(1);
   }
 }
 
-/* Support for next-themes with class strategy */
-.dark code[data-theme*=' '],
-.dark code[data-theme*=' '] span {
-  color: var(--shiki-dark);
-  background-color: var(--shiki-dark-bg);
+/* ------------------------------------------------------------------ */
+/* Line story — static (default) vs live (WebGL) presentation          */
+/* ------------------------------------------------------------------ */
+
+html[data-line='pending'] .intro-item,
+html[data-line='pending'] [data-anchor='hero-line'] {
+  opacity: 0;
 }
 
-/* Code Block Styling */
+html[data-line='live'] .line-fallback {
+  opacity: 0 !important;
+}
+
+/* The rule under the writing list is the line's resting place; once the WebGL line moves on,
+   a light hairline stays behind. */
+.rule-anchor {
+  background: var(--foreground);
+}
+html[data-line='live'] .rule-anchor {
+  background: var(--border);
+}
+
+/* ------------------------------------------------------------------ */
+/* Prose — narrow measure, generous leading                            */
+/* ------------------------------------------------------------------ */
+
+.prose-line {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--foreground);
+  max-width: 38rem;
+}
+
+@media (min-width: 768px) {
+  .prose-line {
+    font-size: 1.0625rem;
+  }
+}
+
+.prose-line > * + * {
+  margin-top: 1.25em;
+}
+
+.prose-line h1,
+.prose-line h2 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-top: 3em;
+  padding-top: 1em;
+  border-top: 1px solid var(--border);
+}
+
+.prose-line > :first-child {
+  margin-top: 0;
+}
+
+.prose-line > h2:first-child {
+  border-top: 0;
+  padding-top: 0.75rem;
+}
+
+.prose-line.legal > h1 {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  border-top: 0;
+  padding-top: 0;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .prose-line.legal > h1 {
+    font-size: 2.25rem;
+  }
+}
+
+.prose-line h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 2.25em;
+}
+
+.prose-line h4 {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-top: 2em;
+}
+
+.prose-line h2 + *,
+.prose-line h3 + *,
+.prose-line h4 + * {
+  margin-top: 0.75em;
+}
+
+.prose-line a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--faint);
+  transition: text-decoration-color 150ms ease-out;
+}
+
+.prose-line a:hover {
+  text-decoration-color: currentColor;
+}
+
+.prose-line strong {
+  font-weight: 500;
+}
+
+.prose-line ul,
+.prose-line ol {
+  padding-left: 1.25em;
+}
+
+.prose-line ul {
+  list-style: none;
+}
+
+.prose-line ul > li {
+  position: relative;
+}
+
+.prose-line ul > li::before {
+  content: '';
+  position: absolute;
+  left: -1.1em;
+  top: 0.85em;
+  width: 0.5em;
+  height: 1px;
+  background: var(--muted-foreground);
+}
+
+.prose-line ol {
+  list-style: decimal;
+}
+
+.prose-line ol > li::marker {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--muted-foreground);
+}
+
+.prose-line li + li {
+  margin-top: 0.4em;
+}
+
+.prose-line li > ul,
+.prose-line li > ol {
+  margin-top: 0.4em;
+}
+
+.prose-line blockquote {
+  border-left: 1px solid var(--foreground);
+  padding-left: 1.25em;
+  color: var(--muted-foreground);
+}
+
+.prose-line hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin-block: 3em;
+}
+
+.prose-line img {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+.dark .prose-line img {
+  outline-color: oklch(1 0 0 / 0.1);
+}
+
+.prose-line table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  overflow-x: auto;
+}
+
+.prose-line th {
+  text-align: left;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--foreground);
+  padding: 0.5em 1em 0.5em 0;
+}
+
+.prose-line td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.6em 1em 0.6em 0;
+  vertical-align: top;
+}
+
+/* Inline code */
+.prose-line :not(pre) > code,
+:not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+
+/* Code blocks: monochrome, hairline-framed, shiki tokens kept subtle */
+.prose-line figure[data-rehype-pretty-code-figure] {
+  margin-inline: 0;
+}
+
+.prose-line pre,
 pre {
-  @apply border-border bg-card overflow-x-auto rounded-lg border p-4;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+  tab-size: 2;
+}
+
+@media (min-width: 1024px) {
+  .prose-line pre {
+    margin-right: -6rem;
+  }
 }
 
 pre code {
-  @apply text-sm leading-relaxed;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-  display: block;
+  display: grid;
+  font-family: inherit;
+  background: none;
+  padding: 0;
+  font-size: inherit;
 }
 
-/* Inline Code */
-:not(pre) > code {
-  @apply bg-secondary/60 text-foreground border-border rounded border px-1.5 py-0.5 text-sm;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+pre code [data-line] {
+  padding-right: 1rem;
 }
 
-/* Line Styling */
 code[data-line-numbers] {
   counter-reset: line;
 }
@@ -211,42 +443,46 @@ code[data-line-numbers] {
 code[data-line-numbers] > [data-line]::before {
   counter-increment: line;
   content: counter(line);
-  @apply text-muted-foreground mr-4 inline-block w-4 text-right;
+  display: inline-block;
+  width: 1.5rem;
+  margin-right: 1.25rem;
+  text-align: right;
+  color: var(--faint);
 }
 
-code[data-line-numbers-max-digits='2'] > [data-line]::before {
-  width: 1.25rem;
-}
-
-code[data-line-numbers-max-digits='3'] > [data-line]::before {
-  width: 1.75rem;
-}
-
-/* Highlighted Lines */
 [data-highlighted-line] {
-  @apply bg-accent/20 border-primary border-l-2 px-4;
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+  box-shadow: inset 1px 0 0 var(--foreground);
 }
 
-/* Highlighted Chars */
 [data-highlighted-chars] {
-  @apply bg-primary/20 border-primary border-b-2;
-  box-shadow: 0 0 0 4px rgb(var(--primary) / 0.1);
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  border-radius: 2px;
 }
 
-/* Code Title */
 [data-rehype-pretty-code-title] {
-  @apply bg-muted text-foreground border-border rounded-t-lg border border-b-0 px-4 py-2 text-sm font-medium;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  padding-top: 0.5rem;
 }
 
 [data-rehype-pretty-code-title] + pre {
-  @apply mt-0 rounded-t-none;
+  margin-top: 0.5rem;
 }
 
-/* Code Caption */
 [data-rehype-pretty-code-caption] {
-  @apply bg-muted text-muted-foreground border-border rounded-b-lg border border-t-0 px-4 py-2 text-xs;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
 }
 
-pre:has(+ [data-rehype-pretty-code-caption]) {
-  @apply mb-0 rounded-b-none;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

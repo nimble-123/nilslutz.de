@@ -1,20 +1,40 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
-import { ParticleBackground } from '@/components/ui/particle-background'
 import { GlobalEffects } from '@/components/ui/global-effects'
 import { StructuredData } from '@/components/ui/structured-data'
-import { clsx } from 'clsx'
+import { SmoothScroll } from '@/components/ui/smooth-scroll'
+import { cn } from '@/lib/utils'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({
+const geist = Geist({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-geist',
   display: 'swap',
 })
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+})
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f7f7f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#08080a' },
+  ],
+}
+
+/**
+ * Runs before first paint: when motion is allowed, hide the hero intro so the one orchestrated
+ * page load can draw the line from a point. Falls back to the static presentation if the WebGL
+ * story never reports in.
+ */
+const lineBootScript = `(function(){try{var d=document.documentElement;if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){d.dataset.line='static';return}d.dataset.line='pending';setTimeout(function(){if(d.dataset.line==='pending')d.dataset.line='static'},4000)}catch(e){}})()`
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nilslutz.de'),
@@ -90,20 +110,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: lineBootScript }} />
         <StructuredData />
       </head>
       <body
-        className={clsx(
-          inter.variable,
-          'bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300'
+        className={cn(
+          geist.variable,
+          geistMono.variable,
+          'bg-background text-foreground min-h-screen font-sans text-[0.875rem] leading-[1.6] antialiased'
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {/* Particle Background - Global */}
-          <ParticleBackground className="fixed inset-0 z-0 h-full w-full" />
-          {/* Global Effects (Matrix Easter Egg) */}
+          <SmoothScroll />
+          {/* Global Effects (Konami easter egg) */}
           <GlobalEffects />
-          <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+          <div className="relative flex min-h-screen flex-col">{children}</div>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

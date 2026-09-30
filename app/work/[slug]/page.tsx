@@ -1,11 +1,11 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
-import { getCaseStudyBySlug, getCaseStudies } from '@/lib/content'
+import { getCaseStudyBySlug, getCaseStudies, withoutDuplicateTitle } from '@/lib/content'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Github, ExternalLink } from 'lucide-react'
 import { Metadata } from 'next'
 import { MDXContent } from '@/components/ui/mdx-content'
+import { PageHeader, pageMain } from '@/components/ui/page-header'
 
 export async function generateStaticParams() {
   const posts = await getCaseStudies()
@@ -52,97 +52,69 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
     notFound()
   }
 
+  const meta = [
+    { k: 'Role', v: study.role },
+    { k: 'Period', v: <span className="tabular-nums">{study.period}</span> },
+    { k: 'Stack', v: study.stack.join(', ') },
+    { k: 'Topics', v: study.tags.join(', ') },
+  ]
+
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <article className="mx-auto max-w-3xl">
-          {/* Header */}
-          <div className="mb-12 space-y-8 border-b pb-12">
-            <Link
-              href="/work"
-              className="text-muted-foreground hover:text-primary inline-flex items-center text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Case Studies
-            </Link>
-
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {study.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-primary/10 text-primary inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <h1 className="text-foreground text-4xl font-bold tracking-tight md:text-5xl">{study.title}</h1>
-              <p className="text-muted-foreground text-xl leading-relaxed">{study.summary}</p>
-            </div>
-
-            {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-6 text-sm md:grid-cols-4">
-              <div>
-                <p className="text-foreground mb-1 font-semibold">Role</p>
-                <p className="text-muted-foreground">{study.role}</p>
-              </div>
-              <div>
-                <p className="text-foreground mb-1 font-semibold">Period</p>
-                <p className="text-muted-foreground">{study.period}</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-foreground mb-1 font-semibold">Tech Stack</p>
-                <p className="text-muted-foreground">{study.stack.join(', ')}</p>
-              </div>
-            </div>
-
-            {/* Links */}
-            {study.links && (
-              <div className="flex gap-4">
+      <main className={pageMain}>
+        <article>
+          <Link href="/work" className="label ink-link hover:text-foreground mb-10 inline-block">
+            ← Case Studies
+          </Link>
+          <PageHeader
+            label={<span className="tabular-nums">{study.period}</span>}
+            title={study.title}
+            intro={study.summary}
+          >
+            {study.links && (study.links.github || study.links.demo) && (
+              <p className="mt-6 flex gap-6 text-[0.8125rem]">
                 {study.links.github && (
-                  <a
-                    href={study.links.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center text-sm font-medium hover:underline"
-                  >
-                    <Github className="mr-2 h-4 w-4" /> View Code
+                  <a href={study.links.github} target="_blank" rel="noopener noreferrer" className="ink-link">
+                    View code ↗
                   </a>
                 )}
                 {study.links.demo && (
-                  <a
-                    href={study.links.demo}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary inline-flex items-center text-sm font-medium hover:underline"
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" /> Live Demo
+                  <a href={study.links.demo} target="_blank" rel="noopener noreferrer" className="ink-link">
+                    Live demo ↗
                   </a>
                 )}
-              </div>
+              </p>
             )}
-          </div>
+          </PageHeader>
 
-          {/* Metrics */}
-          {study.metrics && study.metrics.length > 0 && (
-            <div className="bg-secondary/30 border-border/50 mb-12 rounded-lg border p-6">
-              <h3 className="text-foreground mb-4 font-semibold">Key Outcomes</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {study.metrics.map((metric, idx) => (
-                  <div key={idx} className="flex items-start">
-                    <span className="bg-primary mt-2 mr-2 h-1.5 w-1.5 flex-shrink-0 rounded-full" />
-                    <span className="text-sm font-medium">{metric}</span>
-                  </div>
-                ))}
+          <dl className="grid-line border-foreground gap-y-5 border-t pt-4 pb-16 md:pb-24">
+            {meta.map((m) => (
+              <div key={m.k} className="min-w-0">
+                <dt className="label">{m.k}</dt>
+                <dd className="mt-1 text-[0.8125rem] leading-relaxed">{m.v}</dd>
               </div>
-            </div>
-          )}
+            ))}
+          </dl>
 
-          {/* Content */}
-          <div className="prose prose-lg dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-foreground prose-pre:bg-secondary/50 prose-img:rounded-lg prose-table:border-collapse prose-table:w-full prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:text-left prose-th:text-foreground prose-td:border prose-td:border-border prose-td:p-2 prose-td:text-foreground max-w-none">
-            <MDXContent source={study.content} />
+          <div className="grid-line">
+            <aside className="col-span-2 mb-12 md:col-span-1 md:mb-0">
+              {study.metrics && study.metrics.length > 0 && (
+                <div className="md:sticky md:top-10">
+                  <h2 className="label">Outcomes</h2>
+                  <ul className="mt-3">
+                    {study.metrics.map((metric) => (
+                      <li key={metric} className="border-border border-b py-2 text-[0.8125rem] tabular-nums">
+                        {metric}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </aside>
+            <div className="prose-line col-span-2 md:col-span-3">
+              <MDXContent source={withoutDuplicateTitle(study.content, study.title)} />
+            </div>
           </div>
         </article>
       </main>

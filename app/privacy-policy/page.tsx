@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
 import { Metadata } from 'next'
+import { pageMain } from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -15,8 +16,8 @@ export default function DatenschutzPage() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto flex-1 px-4 py-12 md:py-20">
-        <div className="prose dark:prose-invert mx-auto max-w-2xl">
+      <main className={pageMain}>
+        <div className="prose-line legal md:ml-[25%]">
           <h1>Datenschutzerklärung</h1>
 
           <h2>1. Datenschutz auf einen Blick</h2>
