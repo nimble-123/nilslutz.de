@@ -273,7 +273,7 @@ export function LineStory({ marks, name, role }: Props) {
             const grow = easeInOut(range(p, P.extIn[0] + k * 0.015, P.extIn[1] - 0.03 + k * 0.015)) * (1 - out)
             segs.push(extensionSegment(cx, cy, R, e.deg, grow))
           })
-          pluckable = p > P.coreIn + 0.02 && p < P.coreOut
+          // the core itself stays still: it is the one thing that must not wobble
         } else if (p < P.unroll[1]) {
           const u = easeInOut(range(p, P.unroll[0], P.unroll[1]))
           shape = rolled(1 - u, cx, lerp(cy + R, axisY, u), R, x0, travel)
@@ -306,7 +306,8 @@ export function LineStory({ marks, name, role }: Props) {
       }
       // straight hairlines sit exactly on a device-pixel row
       if (shape.roll <= 0) shape.ay = snapY(shape.ay, dpr)
-      return { shape, segments: segs, signal, pluckable }
+      // vibrations quiet down whenever the line is not resting in a pluckable pose
+      return { shape, segments: segs, signal, pluckable, settle: pluckable ? 0 : 1 }
     }
 
     const tick = (_time: number, deltaTime: number) => {

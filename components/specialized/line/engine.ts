@@ -64,6 +64,8 @@ export type LineFrame = {
   signal: number
   /** whether the pointer may catch the line */
   pluckable: boolean
+  /** 0…1: calm any vibration quickly (the line is changing shape) */
+  settle?: number
 }
 
 type RGB = [number, number, number]
@@ -286,6 +288,7 @@ export class LineEngine {
       }
     }
     const active = this.grab !== null || this.sim.amplitude() > 0.02 || performance.now() - this.lastPluck < 100
+    if (active && f.settle && !this.grab) this.sim.dampen(Math.exp(-f.settle * dt * 6))
     if (active) this.sim.step(dt)
     else if (this.sim.amplitude() > 0) this.sim.reset()
 

@@ -92,6 +92,15 @@ export class StringSim {
     return m
   }
 
+  /** Extra, non-physical damping (factor per call) — used while the line changes shape. */
+  dampen(k: number) {
+    const f = Math.min(Math.max(k, 0), 1)
+    for (let i = 0; i < this.n; i++) {
+      this.d[i] *= f
+      this.v[i] *= f
+    }
+  }
+
   reset() {
     this.d.fill(0)
     this.v.fill(0)
